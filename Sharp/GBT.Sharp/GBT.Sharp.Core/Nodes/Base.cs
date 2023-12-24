@@ -1,19 +1,26 @@
 ﻿namespace GBT.Sharp.Core.Nodes;
 
-public interface INode<TContext>
+
+public interface INode
 {
     string ID { get; }
     string Name { get; }
     NodeState State { get; }
     bool IsEnabled { get; }
-    TContext Context { get; }
+    ITreeContext? Context { get; set; }
 
     void Initialize();
     void Tick();
     void CleanUp();
 }
 
-public interface ILeafNode<TContext> : INode<TContext> { }
+public interface IParentNode : INode
+{
+    void AttachChild(INode child);
+    bool DetachChild(INode child);
+}
+
+public interface ILeafNode : INode { }
 
 public enum NodeState
 {
@@ -23,16 +30,28 @@ public enum NodeState
     Failure,
 }
 
-public abstract class BaseNode<TContext> : INode<TContext>
+public abstract class BaseNode : INode
 {
     public string ID { get; }
     public string Name { get; set; }
 
-    public NodeState State { get; protected set; }
+    public NodeState State { get; private set; }
 
     public bool IsEnabled { get; set; }
 
-    public abstract TContext Context { get; }
+    private ITreeContext? _context;
+    public ITreeContext? Context
+    {
+        get => _context;
+        set
+        {
+            if (_context != value)
+            {
+                _context = value;
+                OnContextUpdated();
+            }
+        }
+    }
 
     public BaseNode(string id, string name)
     {
@@ -63,4 +82,11 @@ public abstract class BaseNode<TContext> : INode<TContext>
         CleanUpInternal();
     }
     public virtual void CleanUpInternal() { }
+
+    protected void SetState(NodeState state, string reason = "")
+    {
+        State = state;
+        // TODO: Log reason in the trace
+    }
+    protected virtual void OnContextUpdated() { }
 }
