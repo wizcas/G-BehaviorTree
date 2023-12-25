@@ -84,7 +84,6 @@ public abstract class BaseNode : INode {
     public virtual void Reset() {
         State = NodeState.Unvisited;
     }
-
     protected void SetState(NodeState state) {
         State = state;
     }
