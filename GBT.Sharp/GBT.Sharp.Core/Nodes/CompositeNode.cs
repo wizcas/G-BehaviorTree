@@ -33,16 +33,16 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         base.Initialize();
         _currentChildIndex = 0;
     }
-    public override void TickInternal() {
+    public override void DoTick() {
         INode? child = CurrentChild;
         if (child is null) {
             SetState(NodeState.Failure, $"no valid child node on index {_currentChildIndex}");
             return;
         }
         child.Tick();
-        AfterChildTick(child);
+        OnChildExit(child);
     }
-    protected abstract void AfterChildTick(INode child);
+    protected abstract void OnChildExit(INode child);
     protected override void OnContextUpdated() {
         base.OnContextUpdated();
         foreach (INode child in _children) {
@@ -71,42 +71,41 @@ public class SequenceNode : ListCompositeNode {
     public SequenceNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildTick(INode child) {
-        if (child.State == NodeState.Running) {
-            SetState(NodeState.Running);
-            return;
+    protected override void OnChildExit(INode child) {
+        switch (child.State) {
+            case NodeState.Running:
+                SetState(NodeState.Running);
+                break;
+            case NodeState.Success:
+                _currentChildIndex++;
+                SetState(_currentChildIndex >= _children.Count ? NodeState.Success : NodeState.Running);
+                break;
+            case NodeState.Failure:
+                SetState(NodeState.Failure, $"child {_currentChildIndex} node has failed");
+                break;
         }
-        if (child.State == NodeState.Failure) {
-            SetState(NodeState.Failure, $"child node has failed");
-            return;
-        }
-        if (child.State == NodeState.Success) {
-            _currentChildIndex++;
-            SetState(_currentChildIndex >= _children.Count ? NodeState.Success : NodeState.Running);
-        }
-    }
-}
-
-/// <summary>
-/// SelectorNode executes its children sequentially until one of them succeeds,
-/// analogous to the logical OR operator.
-/// </summary>
-public class SelectorNode : ListCompositeNode {
-    public SelectorNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildTick(INode child) {
-        if (child.State == NodeState.Running) {
-            SetState(NodeState.Running);
-            return;
+    /// <summary>
+    /// SelectorNode executes its children sequentially until one of them succeeds,
+    /// analogous to the logical OR operator.
+    /// </summary>
+    public class SelectorNode : ListCompositeNode {
+        public SelectorNode(string id, string name) : base(id, name) {
         }
-        if (child.State == NodeState.Success) {
-            SetState(NodeState.Success);
-            return;
-        }
-        if (child.State == NodeState.Failure) {
-            _currentChildIndex++;
-            SetState(_currentChildIndex >= _children.Count ? NodeState.Failure : NodeState.Running);
+
+        protected override void OnChildExit(INode child) {
+            switch (child.State) {
+                case NodeState.Running:
+                    SetState(NodeState.Running);
+                    break;
+                case NodeState.Success:
+                    SetState(NodeState.Success);
+                    break;
+                case NodeState.Failure:
+                    _currentChildIndex++;
+                    SetState(_currentChildIndex >= _children.Count ? NodeState.Failure : NodeState.Running);
+                    break;
+            }
         }
     }
-}

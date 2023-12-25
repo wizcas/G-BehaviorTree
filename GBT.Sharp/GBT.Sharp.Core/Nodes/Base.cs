@@ -10,7 +10,7 @@ public interface INode {
 
     void Initialize();
     void Tick();
-    void CleanUp();
+    void Exit();
 }
 
 public interface IParentNode : INode {
@@ -21,7 +21,6 @@ public interface IParentNode : INode {
 public interface ILeafNode : INode { }
 
 public enum NodeState {
-    Ready,
     Running,
     Success,
     Failure,
@@ -54,22 +53,19 @@ public abstract class BaseNode : INode {
     public virtual void Initialize() { }
 
     public void Tick() {
-        if (State == NodeState.Ready) {
+        if (State != NodeState.Running) {
             Initialize();
         }
         State = NodeState.Running;
-        TickInternal();
+        DoTick();
         if (State != NodeState.Running) {
-            CleanUp();
+            Exit();
         }
     }
-    public abstract void TickInternal();
+    public abstract void DoTick();
 
-    public void CleanUp() {
-        State = NodeState.Ready;
-        CleanUpInternal();
+    public virtual void Exit() {
     }
-    public virtual void CleanUpInternal() { }
 
     protected void SetState(NodeState state, string reason = "") {
         State = state;
