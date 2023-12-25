@@ -2,15 +2,6 @@
 
 namespace GBT.Sharp.Core;
 
-public interface ITreeContext {
-    BehaviorTree Tree { get; init; }
-}
-public struct TreeContext : ITreeContext {
-    public BehaviorTree Tree { get; init; }
-    public TreeContext(BehaviorTree tree) {
-        Tree = tree;
-    }
-}
 public class BehaviorTree {
     private ITreeContext _context;
     private INode? _rootNode;
@@ -39,7 +30,7 @@ public class BehaviorTree {
 
     public void Tick() {
         if (_rootNode is null) {
-            // TODO: warn no root node
+            TreeLogger.Error("the tree has no root node", null);
         } else {
             _rootNode.Tick();
         }

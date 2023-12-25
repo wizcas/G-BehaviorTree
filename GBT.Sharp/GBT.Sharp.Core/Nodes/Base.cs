@@ -44,6 +44,7 @@ public abstract class BaseNode : INode {
             }
         }
     }
+    protected bool CanTick => Context is not null && IsEnabled;
 
     public BaseNode(string id, string name) {
         ID = id;
@@ -53,6 +54,13 @@ public abstract class BaseNode : INode {
     public virtual void Initialize() { }
 
     public void Tick() {
+        if (!CanTick) {
+            SetState(NodeState.Failure);
+            if (Context is null) {
+                TreeLogger.Error("failed for no context", this);
+            }
+            return;
+        }
         if (State != NodeState.Running) {
             Initialize();
         }

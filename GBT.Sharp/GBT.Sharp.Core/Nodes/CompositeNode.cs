@@ -18,9 +18,18 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     protected int _currentChildIndex = -1;
     public IEnumerable<INode> Children => _children;
     public INode? CurrentChild {
-        get => _currentChildIndex >= 0 && _currentChildIndex < _children.Count ? _children[_currentChildIndex] : null;
+        get {
+            if (_currentChildIndex < 0 || _currentChildIndex >= _children.Count) return null;
+            INode? child = _children[_currentChildIndex];
+            if (!child.IsEnabled) {
+                _currentChildIndex++;
+                // Recursively get the next enabled child or quit
+                child = CurrentChild;
+            }
+            return child;
+        }
         protected set {
-            if (value == null) {
+            if (value == null || !value.IsEnabled) {
                 _currentChildIndex = -1;
                 return;
             }
@@ -36,7 +45,8 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     public override void DoTick() {
         INode? child = CurrentChild;
         if (child is null) {
-            SetState(NodeState.Failure, $"no valid child node on index {_currentChildIndex}");
+            SetState(NodeState.Failure);
+            TreeLogger.Error($"failed due to no valid child node on index {_currentChildIndex}", this);
             return;
         }
         child.Tick();
@@ -45,9 +55,11 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     protected abstract void OnChildExit(INode child);
     protected override void OnContextUpdated() {
         base.OnContextUpdated();
+        Initialize();
         foreach (INode child in _children) {
             child.Context = Context;
         }
+        TreeLogger.Info($"re-initialized because context is updated", this);
     }
 
     public void AttachChild(INode child) {
@@ -81,7 +93,7 @@ public class SequenceNode : ListCompositeNode {
                 SetState(_currentChildIndex >= _children.Count ? NodeState.Success : NodeState.Running);
                 break;
             case NodeState.Failure:
-                SetState(NodeState.Failure, $"child {_currentChildIndex} node has failed");
+                SetState(NodeState.Failure);
                 break;
         }
     }
@@ -109,3 +121,4 @@ public class SequenceNode : ListCompositeNode {
             }
         }
     }
+}
