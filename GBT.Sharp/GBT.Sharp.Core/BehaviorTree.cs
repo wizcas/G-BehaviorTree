@@ -17,15 +17,12 @@ public class BehaviorTree {
         }
     }
 
-    public BehaviorTree(ITreeContext treeContext) {
-        _context = treeContext;
+    public BehaviorTree(ITreeContext? context = null) {
+        _context = context ?? CreateContext();
     }
 
     public void SetRootNode(INode rootNode) {
         _rootNode = rootNode;
-        if (_context == null) {
-            CreateContext();
-        }
         _rootNode.Context = _context;
     }
 
@@ -58,8 +55,8 @@ public class BehaviorTree {
         _runningNode = null;
     }
 
-    private void CreateContext() {
-        _context = new TreeContext(this);
+    private TreeContext CreateContext() {
+        return new TreeContext(this);
     }
 
     private void OnContextChanged() {

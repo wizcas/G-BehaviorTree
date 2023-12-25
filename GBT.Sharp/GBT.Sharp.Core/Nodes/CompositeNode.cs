@@ -21,15 +21,15 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         get {
             if (_currentChildIndex < 0 || _currentChildIndex >= _children.Count) return null;
             INode? child = _children[_currentChildIndex];
-            if (!child.IsEnabled) {
+            if (child.IsDisabled) {
+                // if the current child is disabled, recursively get the next enabled child or quit
                 _currentChildIndex++;
-                // Recursively get the next enabled child or quit
                 child = CurrentChild;
             }
             return child;
         }
         protected set {
-            if (value == null || !value.IsEnabled) {
+            if (value == null || value.IsDisabled) {
                 _currentChildIndex = -1;
                 return;
             }

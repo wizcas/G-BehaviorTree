@@ -5,7 +5,7 @@ public interface INode {
     string ID { get; }
     string Name { get; }
     NodeState State { get; }
-    bool IsEnabled { get; }
+    bool IsDisabled { get; }
     INode? Parent { get; }
     ITreeContext? Context { get; set; }
 
@@ -35,7 +35,7 @@ public abstract class BaseNode : INode {
 
     public NodeState State { get; private set; }
 
-    public bool IsEnabled { get; set; }
+    public bool IsDisabled { get; set; }
 
     private ITreeContext? _context;
     public ITreeContext? Context {
@@ -47,7 +47,6 @@ public abstract class BaseNode : INode {
             }
         }
     }
-    protected bool CanTick => Context is not null && IsEnabled;
 
     public INode? Parent { get; set; }
 
@@ -61,12 +60,10 @@ public abstract class BaseNode : INode {
 
     public void Tick() {
         if (Context is null) {
-            SetState(NodeState.Failure);
-            TreeLogger.Error("failed for no context", this);
+            TreeLogger.Error("this node has no context", this);
             return;
         }
-        if (!IsEnabled) {
-            SetState(NodeState.Failure);
+        if (IsDisabled) {
             return;
         }
         if (State != NodeState.Running) {
