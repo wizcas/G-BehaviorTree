@@ -63,8 +63,6 @@ public class BehaviorTree {
     }
 
     private void OnContextChanged() {
-        if (_rootNode != null) {
-            // TODO: reset all node states to re-execute from the root for the new context
-        }
+        Interrupt();
     }
 }
