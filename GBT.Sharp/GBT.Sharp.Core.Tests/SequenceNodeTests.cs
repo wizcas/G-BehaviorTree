@@ -10,6 +10,9 @@ public class SequenceNodeTests {
     private readonly TestNode _child2;
 
     public SequenceNodeTests(ITestOutputHelper output) {
+        _output = output;
+        // TreeLogger.WriteLog = output.WriteLine;
+
         _node = new("TEST SEQUENCE NODE", "test sequence");
         _child1 = new TestNode("CHILD 1", "child 1");
         _child2 = new TestNode("CHILD 2", "child 2");
@@ -18,7 +21,6 @@ public class SequenceNodeTests {
 
         _tree = new();
         _tree.SetRootNode(_node);
-        _output = output;
     }
 
     [Fact]

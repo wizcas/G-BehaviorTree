@@ -11,6 +11,9 @@ public class SelectorNodeTests {
     private readonly TestNode _child2;
 
     public SelectorNodeTests(ITestOutputHelper output) {
+        _output = output;
+        // TreeLogger.WriteLog = output.WriteLine;
+
         _node = new("TEST SELECTOR NODE", "test selector");
         _child1 = new TestNode("CHILD 1", "child 1");
         _child2 = new TestNode("CHILD 2", "child 2");
@@ -19,7 +22,6 @@ public class SelectorNodeTests {
 
         _tree = new();
         _tree.SetRootNode(_node);
-        _output = output;
     }
 
     [Fact]

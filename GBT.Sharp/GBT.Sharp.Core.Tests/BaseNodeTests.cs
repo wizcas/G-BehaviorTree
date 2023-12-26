@@ -1,12 +1,18 @@
 using GBT.Sharp.Core.Nodes;
 using Moq;
+using Xunit.Abstractions;
 
 namespace GBT.Sharp.Core.Tests;
 
 public class BaseNodeTests {
     private readonly TestNode _t;
     private readonly BehaviorTree _tree;
-    public BaseNodeTests() {
+    private readonly ITestOutputHelper _output;
+
+    public BaseNodeTests(ITestOutputHelper output) {
+        _output = output;
+        // TreeLogger.WriteLog = output.WriteLine;
+
         _t = new("TEST", "test node");
         _tree = new BehaviorTree();
         _tree.SetRootNode(_t.Node);

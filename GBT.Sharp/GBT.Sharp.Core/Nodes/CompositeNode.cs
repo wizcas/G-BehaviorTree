@@ -41,6 +41,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     public override void Initialize() {
         base.Initialize();
         _currentChildIndex = 0;
+        TreeLogger.Info("initialized", this);
     }
     public override void DoTick() {
         INode? child = CurrentChild;
@@ -55,11 +56,13 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     protected abstract void OnChildExit(INode child);
     protected override void OnContextUpdated() {
         base.OnContextUpdated();
-        Initialize();
+        if (State == NodeState.Running) {
+            TreeLogger.Info($"running node is re-initialized because context is updated", this);
+            Initialize();
+        }
         foreach (INode child in _children) {
             child.Context = Context;
         }
-        TreeLogger.Info($"re-initialized because context is updated", this);
     }
 
     public void AttachChild(INode child) {

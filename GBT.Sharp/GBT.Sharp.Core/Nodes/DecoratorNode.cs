@@ -11,30 +11,32 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
     public DecoratorNode(string id, string name) : base(id, name) {
     }
 
-    private INode? _child;
-    public INode? Child => _child;
+    public INode? Child { get; private set; }
     public void AttachChild(INode child) {
-        if (_child is not null) {
-            DetachChild(_child);
+        if (Child is not null) {
+            DetachChild(Child);
         }
-        _child = child;
-        _child.Context = Context;
+        Child = child;
+        Child.Context = Context;
     }
 
     public bool DetachChild(INode child) {
-        if (_child != child) return false;
-        _child.Context = null;
-        _child = null;
+        if (Child != child) {
+            return false;
+        }
+
+        Child.Context = null;
+        Child = null;
         return true;
     }
 
     public override void DoTick() {
-        if (_child is null) {
+        if (Child is null) {
             State = NodeState.Failure;
             TreeLogger.Error("failed for no child is attached", this);
             return;
         }
-        DoTick(_child);
+        DoTick(Child);
     }
     protected abstract void DoTick(INode child);
 }
