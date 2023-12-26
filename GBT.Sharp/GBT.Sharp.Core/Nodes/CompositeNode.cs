@@ -45,7 +45,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     public override void DoTick() {
         INode? child = CurrentChild;
         if (child is null) {
-            SetState(NodeState.Failure);
+            State = NodeState.Failure;
             TreeLogger.Error($"failed due to no valid child node on index {_currentChildIndex}", this);
             return;
         }
@@ -86,14 +86,14 @@ public class SequenceNode : ListCompositeNode {
     protected override void OnChildExit(INode child) {
         switch (child.State) {
             case NodeState.Running:
-                SetState(NodeState.Running);
+                State = NodeState.Running;
                 break;
             case NodeState.Success:
                 _currentChildIndex++;
-                SetState(_currentChildIndex >= _children.Count ? NodeState.Success : NodeState.Running);
+                State = _currentChildIndex >= _children.Count ? NodeState.Success : NodeState.Running;
                 break;
             case NodeState.Failure:
-                SetState(NodeState.Failure);
+                State = NodeState.Failure;
                 break;
         }
     }
@@ -109,14 +109,14 @@ public class SequenceNode : ListCompositeNode {
         protected override void OnChildExit(INode child) {
             switch (child.State) {
                 case NodeState.Running:
-                    SetState(NodeState.Running);
+                    State = NodeState.Running;
                     break;
                 case NodeState.Success:
-                    SetState(NodeState.Success);
+                    State = NodeState.Success;
                     break;
                 case NodeState.Failure:
                     _currentChildIndex++;
-                    SetState(_currentChildIndex >= _children.Count ? NodeState.Failure : NodeState.Running);
+                    State = _currentChildIndex >= _children.Count ? NodeState.Failure : NodeState.Running;
                     break;
             }
         }

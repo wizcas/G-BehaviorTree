@@ -30,7 +30,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
 
     public override void DoTick() {
         if (_child is null) {
-            SetState(NodeState.Failure);
+            State = NodeState.Failure;
             TreeLogger.Error("failed for no child is attached", this);
             return;
         }
@@ -49,17 +49,11 @@ public class InverterNode : DecoratorNode {
 
     protected override void DoTick(INode child) {
         child.Tick();
-        switch (child.State) {
-            case NodeState.Success:
-                SetState(NodeState.Failure);
-                break;
-            case NodeState.Failure:
-                SetState(NodeState.Success);
-                break;
-            default:
-                SetState(child.State);
-                break;
-        }
+        State = child.State switch {
+            NodeState.Success => NodeState.Failure,
+            NodeState.Failure => NodeState.Success,
+            _ => child.State,
+        };
     }
 }
 
@@ -72,7 +66,7 @@ public class SucceederNode : DecoratorNode {
 
     protected override void DoTick(INode child) {
         child.Tick();
-        SetState(NodeState.Success);
+        State = NodeState.Success;
     }
 }
 
@@ -97,10 +91,10 @@ public class RepeaterNode : DecoratorNode {
 
     protected override void DoTick(INode child) {
         if (Times >= 0 && _currentTimes >= Times) {
-            SetState(NodeState.Success);
+            State = NodeState.Success;
             return;
         }
-        SetState(NodeState.Running);
+        State = NodeState.Running;
         child.Tick();
         if (child.State is NodeState.Success or NodeState.Failure) {
             _currentTimes++;
@@ -121,16 +115,10 @@ public class RepeatUntilFailureNode : DecoratorNode {
 
     protected override void DoTick(INode child) {
         child.Tick();
-        switch (child.State) {
-            case NodeState.Success:
-                SetState(NodeState.Running);
-                break;
-            case NodeState.Failure:
-                SetState(NodeState.Success);
-                break;
-            default:
-                SetState(child.State);
-                break;
-        }
+        State = child.State switch {
+            NodeState.Success => NodeState.Running,
+            NodeState.Failure => NodeState.Success,
+            _ => child.State,
+        };
     }
 }

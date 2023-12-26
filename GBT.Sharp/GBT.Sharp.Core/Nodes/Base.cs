@@ -4,8 +4,8 @@
 public interface INode {
     string ID { get; }
     string Name { get; }
-    NodeState State { get; }
-    bool IsDisabled { get; }
+    NodeState State { get; set; }
+    bool IsDisabled { get; set; }
     INode? Parent { get; }
     ITreeContext? Context { get; set; }
 
@@ -33,7 +33,7 @@ public abstract class BaseNode : INode {
     public string ID { get; }
     public string Name { get; set; }
 
-    public NodeState State { get; private set; }
+    public NodeState State { get; set; }
 
     public bool IsDisabled { get; set; }
 
@@ -83,9 +83,6 @@ public abstract class BaseNode : INode {
     }
     public virtual void Reset() {
         State = NodeState.Unvisited;
-    }
-    protected void SetState(NodeState state) {
-        State = state;
     }
     protected virtual void OnContextUpdated() { }
 }
