@@ -11,7 +11,7 @@ public interface INode {
 
     void Initialize();
     void Tick();
-    void Exit();
+    void CleanUp();
     void Reset();
 }
 
@@ -73,13 +73,13 @@ public abstract class BaseNode : INode {
         State = NodeState.Running;
         DoTick();
         if (State != NodeState.Running) {
-            Exit();
+            CleanUp();
             Context.Tree.ExitRunningNode(this);
         }
     }
     protected abstract void DoTick();
 
-    public virtual void Exit() {
+    public virtual void CleanUp() {
     }
     public virtual void Reset() {
         State = NodeState.Unvisited;
