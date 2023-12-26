@@ -3,11 +3,21 @@ using Moq;
 
 namespace GBT.Sharp.Core.Tests;
 
-public class TestNode(string id, string name) {
-    public Mock<BaseNode> Mock { get; init; } = new(id, name);
-    public BaseNode Node => Mock.Object;
+public class TestNode {
+    public TestNode(string id, string name) {
+        Mock.Setup(node => node.ID).Returns(id);
+        Mock.Setup(node => node.Name).Returns(name);
+    }
 
-    public void MockNextState(NodeState nextState) {
-        Mock.Setup(node => node.DoTick()).Callback(() => Node.State = nextState);
+    public Mock<INode> Mock { get; init; } = new();
+    public INode Node => Mock.Object;
+
+
+    public void MockNextState(NodeState nextState, Action? callback = null) {
+        Mock.SetupProperty(node => node.State);
+        Mock.Setup(node => node.Tick()).Callback(() => {
+            Node.State = nextState;
+            callback?.Invoke();
+        });
     }
 }

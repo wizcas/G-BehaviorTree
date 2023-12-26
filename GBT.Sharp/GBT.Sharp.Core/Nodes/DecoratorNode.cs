@@ -13,6 +13,9 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
 
     public INode? Child { get; private set; }
     public void AttachChild(INode child) {
+        if (child == Child) {
+            return;
+        }
         if (Child is not null) {
             DetachChild(Child);
         }
@@ -30,7 +33,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
         return true;
     }
 
-    public override void DoTick() {
+    protected sealed override void DoTick() {
         if (Child is null) {
             State = NodeState.Failure;
             TreeLogger.Error("failed for no child is attached", this);
@@ -90,10 +93,14 @@ public class RepeaterNode : DecoratorNode {
     public int Times { get; set; } = -1;
     public RepeaterNode(string id, string name) : base(id, name) {
     }
-
+    public override void Initialize() {
+        base.Initialize();
+        _currentTimes = 0;
+    }
     protected override void DoTick(INode child) {
-        if (Times >= 0 && _currentTimes >= Times) {
+        if (ShouldStop()) {
             State = NodeState.Success;
+            TreeLogger.Warn($"repeater node not run at all: current times is {_currentTimes}, while the repeat times is {Times}", this);
             return;
         }
         State = NodeState.Running;
@@ -101,10 +108,14 @@ public class RepeaterNode : DecoratorNode {
         if (child.State is NodeState.Success or NodeState.Failure) {
             _currentTimes++;
         }
+        if (ShouldStop()) {
+            State = NodeState.Success;
+            return;
+        }
     }
-    public override void Initialize() {
-        base.Initialize();
-        _currentTimes = 0;
+
+    private bool ShouldStop() {
+        return Times >= 0 && _currentTimes >= Times;
     }
 }
 

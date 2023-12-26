@@ -77,7 +77,7 @@ public abstract class BaseNode : INode {
             Context.Tree.ExitRunningNode(this);
         }
     }
-    public abstract void DoTick();
+    protected abstract void DoTick();
 
     public virtual void Exit() {
     }
@@ -85,4 +85,14 @@ public abstract class BaseNode : INode {
         State = NodeState.Unvisited;
     }
     protected virtual void OnContextUpdated() { }
+}
+
+public class CallbackNode : BaseNode {
+    public Action? Callback { get; set; }
+    public CallbackNode(string id, string name) : base(id, name) {
+    }
+
+    protected override void DoTick() {
+        Callback?.Invoke();
+    }
 }

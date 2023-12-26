@@ -5,53 +5,51 @@ using Xunit.Abstractions;
 namespace GBT.Sharp.Core.Tests;
 
 public class BaseNodeTests {
-    private readonly TestNode _t;
+    private readonly Mock<CallbackNode> _t;
     private readonly BehaviorTree _tree;
     private readonly ITestOutputHelper _output;
 
     public BaseNodeTests(ITestOutputHelper output) {
         _output = output;
-        // TreeLogger.WriteLog = output.WriteLine;
-
-        _t = new("TEST", "test node");
+        _t = new("TEST", "test node") { CallBase = true };
         _tree = new BehaviorTree();
-        _tree.SetRootNode(_t.Node);
+        _tree.SetRootNode(_t.Object);
     }
     [Fact]
     public void ShouldHaveDefaultState() {
-        Assert.Equal("TEST", _t.Node.ID);
-        Assert.Equal("test node", _t.Node.Name);
-        Assert.Equal(NodeState.Unvisited, _t.Node.State);
-        Assert.False(_t.Node.IsDisabled);
-        Assert.Equal(_tree.Context, _t.Node.Context);
-        Assert.Null(_t.Node.Parent);
+        Assert.Equal("TEST", _t.Object.ID);
+        Assert.Equal("test node", _t.Object.Name);
+        Assert.Equal(NodeState.Unvisited, _t.Object.State);
+        Assert.False(_t.Object.IsDisabled);
+        Assert.Equal(_tree.Context, _t.Object.Context);
+        Assert.Null(_t.Object.Parent);
     }
     [Fact]
     public void ShouldNotRunIfNotEnabled() {
-        _t.Node.IsDisabled = true;
-        _t.Node.Tick();
-        Assert.Equal(NodeState.Unvisited, _t.Node.State);
+        _t.Object.IsDisabled = true;
+        _t.Object.Tick();
+        Assert.Equal(NodeState.Unvisited, _t.Object.State);
     }
     [Fact]
     public void ShouldNotRunIfNoContext() {
-        _t.Node.Context = null;
-        _t.Node.Tick();
-        Assert.Equal(NodeState.Unvisited, _t.Node.State);
+        _t.Object.Context = null;
+        _t.Object.Tick();
+        Assert.Equal(NodeState.Unvisited, _t.Object.State);
     }
     [Fact]
     public void ShouldInitializeAndRunningAfterTick() {
-        _t.Node.Tick();
-        Assert.Equal(NodeState.Running, _t.Node.State);
-        _t.Mock.Verify(node => node.Initialize(), Times.Once());
-        _t.Mock.Verify(node => node.Exit(), Times.Never());
+        _t.Object.Tick();
+        Assert.Equal(NodeState.Running, _t.Object.State);
+        _t.Verify(node => node.Initialize(), Times.Once());
+        _t.Verify(node => node.Exit(), Times.Never());
     }
     [Theory]
     [InlineData(NodeState.Success)]
     [InlineData(NodeState.Failure)]
     public void ShouldExitIfOnEndStates(NodeState nextState) {
-        _t.MockNextState(nextState);
-        _t.Node.Tick();
-        Assert.Equal(nextState, _t.Node.State);
-        _t.Mock.Verify(node => node.Exit(), Times.Once());
+        _t.Object.Callback = () => _t.Object.State = nextState;
+        _t.Object.Tick();
+        Assert.Equal(nextState, _t.Object.State);
+        _t.Verify(node => node.Exit(), Times.Once());
     }
 }

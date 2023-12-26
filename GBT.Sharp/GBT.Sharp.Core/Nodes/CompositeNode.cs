@@ -43,7 +43,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         _currentChildIndex = 0;
         TreeLogger.Info("initialized", this);
     }
-    public override void DoTick() {
+    protected sealed override void DoTick() {
         INode? child = CurrentChild;
         if (child is null) {
             State = NodeState.Failure;
