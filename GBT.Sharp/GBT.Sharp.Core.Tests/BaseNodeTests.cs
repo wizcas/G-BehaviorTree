@@ -41,7 +41,7 @@ public class BaseNodeTests {
         _t.Object.Tick();
         Assert.Equal(NodeState.Running, _t.Object.State);
         _t.Verify(node => node.Initialize(), Times.Once());
-        _t.Verify(node => node.Exit(), Times.Never());
+        _t.Verify(node => node.CleanUp(), Times.Never());
     }
     [Theory]
     [InlineData(NodeState.Success)]
@@ -50,6 +50,6 @@ public class BaseNodeTests {
         _t.Object.Callback = () => _t.Object.State = nextState;
         _t.Object.Tick();
         Assert.Equal(nextState, _t.Object.State);
-        _t.Verify(node => node.Exit(), Times.Once());
+        _t.Verify(node => node.CleanUp(), Times.Once());
     }
 }
