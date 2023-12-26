@@ -70,8 +70,9 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     public bool DetachChild(INode child) {
         if (_children.Contains(child)) {
             return _children.Remove(child);
+        } else {
+            return false;
         }
-        return false;
     }
 }
 
@@ -95,30 +96,34 @@ public class SequenceNode : ListCompositeNode {
             case NodeState.Failure:
                 State = NodeState.Failure;
                 break;
+            default:
+                break;
         }
     }
+}
 
-    /// <summary>
-    /// SelectorNode executes its children sequentially until one of them succeeds,
-    /// analogous to the logical OR operator.
-    /// </summary>
-    public class SelectorNode : ListCompositeNode {
-        public SelectorNode(string id, string name) : base(id, name) {
-        }
+/// <summary>
+/// SelectorNode executes its children sequentially until one of them succeeds,
+/// analogous to the logical OR operator.
+/// </summary>
+public class SelectorNode : ListCompositeNode {
+    public SelectorNode(string id, string name) : base(id, name) {
+    }
 
-        protected override void OnChildExit(INode child) {
-            switch (child.State) {
-                case NodeState.Running:
-                    State = NodeState.Running;
-                    break;
-                case NodeState.Success:
-                    State = NodeState.Success;
-                    break;
-                case NodeState.Failure:
-                    _currentChildIndex++;
-                    State = _currentChildIndex >= _children.Count ? NodeState.Failure : NodeState.Running;
-                    break;
-            }
+    protected override void OnChildExit(INode child) {
+        switch (child.State) {
+            case NodeState.Running:
+                State = NodeState.Running;
+                break;
+            case NodeState.Success:
+                State = NodeState.Success;
+                break;
+            case NodeState.Failure:
+                _currentChildIndex++;
+                State = _currentChildIndex >= _children.Count ? NodeState.Failure : NodeState.Running;
+                break;
+            default:
+                break;
         }
     }
 }

@@ -4,15 +4,15 @@ using Moq;
 namespace GBT.Sharp.Core.Tests;
 
 public class BaseNodeTests {
-    private TestNode _t;
-    private BehaviorTree _tree;
+    private readonly TestNode _t;
+    private readonly BehaviorTree _tree;
     public BaseNodeTests() {
         _t = new("TEST", "test node");
         _tree = new BehaviorTree();
         _tree.SetRootNode(_t.Node);
     }
     [Fact]
-    public void Should_Have_Default_State() {
+    public void ShouldHaveDefaultState() {
         Assert.Equal("TEST", _t.Node.ID);
         Assert.Equal("test node", _t.Node.Name);
         Assert.Equal(NodeState.Unvisited, _t.Node.State);
@@ -21,19 +21,19 @@ public class BaseNodeTests {
         Assert.Null(_t.Node.Parent);
     }
     [Fact]
-    public void Should_Not_Run_If_Not_Enabled() {
+    public void ShouldNotRunIfNotEnabled() {
         _t.Node.IsDisabled = true;
         _t.Node.Tick();
         Assert.Equal(NodeState.Unvisited, _t.Node.State);
     }
     [Fact]
-    public void Should_Not_Run_If_No_Context() {
+    public void ShouldNotRunIfNoContext() {
         _t.Node.Context = null;
         _t.Node.Tick();
         Assert.Equal(NodeState.Unvisited, _t.Node.State);
     }
     [Fact]
-    public void Should_Initialize_And_Running_After_Tick() {
+    public void ShouldInitializeAndRunningAfterTick() {
         _t.Node.Tick();
         Assert.Equal(NodeState.Running, _t.Node.State);
         _t.Mock.Verify(node => node.Initialize(), Times.Once());
@@ -42,7 +42,7 @@ public class BaseNodeTests {
     [Theory]
     [InlineData(NodeState.Success)]
     [InlineData(NodeState.Failure)]
-    public void Should_Exit_If_On_End_States(NodeState nextState) {
+    public void ShouldExitIfOnEndStates(NodeState nextState) {
         _t.MockNextState(nextState);
         _t.Node.Tick();
         Assert.Equal(nextState, _t.Node.State);
