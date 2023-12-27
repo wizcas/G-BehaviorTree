@@ -11,13 +11,12 @@ public class BaseNodeTests {
 
     public BaseNodeTests(ITestOutputHelper output) {
         _output = output;
-        _t = new("TEST", "test node") { CallBase = true };
+        _t = new("test node") { CallBase = true };
         _tree = new BehaviorTree();
         _tree.SetRootNode(_t.Object);
     }
     [Fact]
     public void ShouldHaveDefaultState() {
-        Assert.Equal("TEST", _t.Object.ID);
         Assert.Equal("test node", _t.Object.Name);
         Assert.Equal(NodeState.Unvisited, _t.Object.State);
         Assert.False(_t.Object.IsDisabled);

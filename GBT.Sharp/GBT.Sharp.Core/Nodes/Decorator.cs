@@ -11,6 +11,12 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
     public DecoratorNode(string id, string name) : base(id, name) {
     }
 
+    protected DecoratorNode(string name) : base(name) {
+    }
+
+    protected DecoratorNode() {
+    }
+
     public INode? Child { get; private set; }
     public void AddChild(INode child) {
         if (child == Child) {
@@ -22,7 +28,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
         Child = child;
         Child.Context = Context;
         if (child.Parent != this) {
-            child.SetParent(this);
+            child.Parent = this;
         }
     }
 
@@ -38,7 +44,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
 
     public void OnChildExit(INode child) {
         if (child != Child) {
-            TreeLogger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
+            BehaviorTree.Logger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
             return;
         }
         AfterChildExit(child);
@@ -49,7 +55,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
     protected sealed override void DoTick() {
         if (Child is null) {
             State = NodeState.Failure;
-            TreeLogger.Error("failed for no child is attached", this);
+            BehaviorTree.Logger.Error("failed for no child is attached", this);
             return;
         }
         DoTick(Child);
@@ -62,6 +68,12 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
 /// if it's <see cref="NodeState.Success"/> or <see cref="NodeState.Failure"/>.
 /// </summary>
 public class InverterNode : DecoratorNode {
+    public InverterNode() {
+    }
+
+    public InverterNode(string name) : base(name) {
+    }
+
     public InverterNode(string id, string name) : base(id, name) {
     }
 
@@ -78,6 +90,12 @@ public class InverterNode : DecoratorNode {
 /// SucceederNode always returns <see cref="NodeState.Success"/> regardless of the child node result.
 /// </summary>
 public class SucceederNode : DecoratorNode {
+    public SucceederNode() {
+    }
+
+    public SucceederNode(string name) : base(name) {
+    }
+
     public SucceederNode(string id, string name) : base(id, name) {
     }
 
@@ -105,6 +123,13 @@ public class RepeaterNode : DecoratorNode {
     public int Times { get; set; } = -1;
     public RepeaterNode(string id, string name) : base(id, name) {
     }
+
+    public RepeaterNode(string name) : base(name) {
+    }
+
+    public RepeaterNode() {
+    }
+
     public override void Initialize() {
         base.Initialize();
         _currentTimes = 0;
@@ -112,7 +137,7 @@ public class RepeaterNode : DecoratorNode {
     protected override void DoTick(INode child) {
         if (ShouldStop()) {
             State = NodeState.Success;
-            TreeLogger.Warn($"repeater node not run at all: current times is {_currentTimes}, while the repeat times is {Times}", this);
+            BehaviorTree.Logger.Warn($"repeater node not run at all: current times is {_currentTimes}, while the repeat times is {Times}", this);
             return;
         }
         State = NodeState.Running;
@@ -137,6 +162,12 @@ public class RepeaterNode : DecoratorNode {
 /// RepeatUntilFailureNode repeats the child node execution until it fails.
 /// </summary>
 public class RepeatUntilFailureNode : DecoratorNode {
+    public RepeatUntilFailureNode() {
+    }
+
+    public RepeatUntilFailureNode(string name) : base(name) {
+    }
+
     public RepeatUntilFailureNode(string id, string name) : base(id, name) {
     }
 

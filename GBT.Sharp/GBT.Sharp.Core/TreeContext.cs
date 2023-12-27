@@ -12,7 +12,7 @@ public interface ITreeContext {
 }
 
 public class TreeTrace : IEnumerable<INode> {
-    private List<INode> _nodes = new();
+    private readonly List<INode> _nodes = new();
 
     public IEnumerator<INode> GetEnumerator() {
         return _nodes.GetEnumerator();

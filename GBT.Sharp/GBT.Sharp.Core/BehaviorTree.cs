@@ -3,6 +3,9 @@
 namespace GBT.Sharp.Core;
 
 public class BehaviorTree {
+    public static TreeLogger Logger { get; } = new TreeLogger();
+
+
     private ITreeContext _context;
     private INode? _rootNode;
 
@@ -30,7 +33,7 @@ public class BehaviorTree {
     public void Tick() {
         Context.NewTrace();
         if (_rootNode is null) {
-            TreeLogger.Error("the tree has no root node", null);
+            Logger.Error("the tree has no root node", null);
         } else {
             (RunningNode ?? _rootNode).Tick();
         }
@@ -41,7 +44,7 @@ public class BehaviorTree {
     }
     public void ExitRunningNode(INode node) {
         if (RunningNode != node) {
-            TreeLogger.Warn($"skip: try to exit running node {node} but the running node is {RunningNode}", node);
+            Logger.Warn($"skip: try to exit running node {node} but the running node is {RunningNode}", node);
             return;
         }
         RunningNode = node.Parent;

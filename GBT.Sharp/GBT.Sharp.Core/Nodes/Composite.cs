@@ -38,23 +38,30 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     }
     public ListCompositeNode(string id, string name) : base(id, name) {
     }
+
+    protected ListCompositeNode(string name) : base(name) {
+    }
+
+    protected ListCompositeNode() {
+    }
+
     public override void Initialize() {
         base.Initialize();
         _currentChildIndex = 0;
-        TreeLogger.Info("initialized", this);
+        BehaviorTree.Logger.Info("initialized", this);
     }
     protected sealed override void DoTick() {
         INode? child = CurrentChild;
         if (child is null) {
             State = NodeState.Failure;
-            TreeLogger.Error($"failed due to no valid child node on index {_currentChildIndex}", this);
+            BehaviorTree.Logger.Error($"failed due to no valid child node on index {_currentChildIndex}", this);
             return;
         }
         child.Tick();
     }
     public void OnChildExit(INode child) {
         if (child != CurrentChild) {
-            TreeLogger.Warn($"skip: try to exit child {child} but the current child is {CurrentChild}", child);
+            BehaviorTree.Logger.Warn($"skip: try to exit child {child} but the current child is {CurrentChild}", child);
             return;
         }
         AfterChildExit(child);
@@ -64,7 +71,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     protected override void OnContextUpdated() {
         base.OnContextUpdated();
         if (State == NodeState.Running) {
-            TreeLogger.Info($"running node is re-initialized because context is updated", this);
+            BehaviorTree.Logger.Info($"running node is re-initialized because context is updated", this);
             Initialize();
         }
         foreach (INode child in _children) {
@@ -79,7 +86,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         }
         if (child.Parent != this) {
             // In case AddChild is not called from child.SetParent()
-            child.SetParent(this);
+            child.Parent = this;
         }
     }
 
@@ -97,6 +104,12 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
 /// analogous to the logical AND operator.
 /// </summary>
 public class SequenceNode : ListCompositeNode {
+    public SequenceNode() {
+    }
+
+    public SequenceNode(string name) : base(name) {
+    }
+
     public SequenceNode(string id, string name) : base(id, name) {
     }
 
@@ -123,6 +136,12 @@ public class SequenceNode : ListCompositeNode {
 /// analogous to the logical OR operator.
 /// </summary>
 public class SelectorNode : ListCompositeNode {
+    public SelectorNode() {
+    }
+
+    public SelectorNode(string name) : base(name) {
+    }
+
     public SelectorNode(string id, string name) : base(id, name) {
     }
 

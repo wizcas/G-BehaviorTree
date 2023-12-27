@@ -11,7 +11,7 @@ public class BehaviorTreeTests {
 
     [Fact]
     public void ShouldRunRootNode() {
-        var rootNode = new CallbackNode("TEST", "test node");
+        var rootNode = new CallbackNode("test node");
         var count = 0;
         rootNode.OnTick += (node) => count++;
         _tree.SetRootNode(rootNode);
@@ -21,9 +21,9 @@ public class BehaviorTreeTests {
     }
     [Fact]
     public void ShouldCacheRunningNode() {
-        var rootNode = new SequenceNode("SEQ", "sequence node");
-        var child1 = new CallbackNode("C1", "child 1");
-        var child2 = new CallbackNode("C2", "child 2");
+        var rootNode = new SequenceNode("sequence node");
+        var child1 = new CallbackNode("child 1");
+        var child2 = new CallbackNode("child 2");
         rootNode.AddChild(child1);
         rootNode.AddChild(child2);
         _tree.SetRootNode(rootNode);
@@ -49,8 +49,8 @@ public class BehaviorTreeTests {
     }
     [Fact]
     public void ShouldInterruptRunningState() {
-        var rootNode = new SequenceNode("SEQ", "sequence node");
-        var child = new CallbackNode("C1", "child 1");
+        var rootNode = new SequenceNode("sequence node");
+        var child = new CallbackNode("child 1");
         rootNode.AddChild(child);
         _tree.SetRootNode(rootNode);
 
