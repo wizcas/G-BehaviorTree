@@ -11,10 +11,12 @@ public class BehaviorTreeTests {
 
     [Fact]
     public void ShouldRunRootNode() {
-        var rootNode = new CounterNode("TEST", "test node");
+        var rootNode = new CallbackNode("TEST", "test node");
+        var count = 0;
+        rootNode.OnTick += (node) => count++;
         _tree.SetRootNode(rootNode);
         _tree.Tick();
-        Assert.Equal(1, rootNode.Count);
+        Assert.Equal(1, count);
         Assert.Equal(rootNode, _tree.RunningNode);
     }
     [Fact]
