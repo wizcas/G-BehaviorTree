@@ -18,11 +18,6 @@ public interface INode {
     /// </summary>
     void Tick();
     /// <summary>
-    /// Check whether this node has done execution and can be exited. 
-    /// If yes, any exit steps of the node will be run.
-    /// </summary>
-    void TryExit();
-    /// <summary>
     /// Clean up any intermediate state or data that was set
     /// by running this node.
     /// </summary>
@@ -34,8 +29,20 @@ public interface INode {
 }
 
 public interface IParentNode : INode {
+    /// <summary>
+    /// Adding a child to this node. Depending on the type of the node,
+    /// this may substitute the current child or add the child to a list.
+    /// </summary>
     void AddChild(INode child);
+    /// <summary>
+    /// Removing a child from this node. Depending on the type of the node,
+    /// this may remove the current child or remove the child from a list.
+    /// </summary>
     bool RemoveChild(INode child);
+    /// <summary>
+    /// Called when a child node is exited, which is when the parent node
+    /// needs to determine its next state.
+    /// </summary>
     void OnChildExit(INode child);
 }
 

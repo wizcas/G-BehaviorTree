@@ -56,10 +56,17 @@ public abstract class BaseNode : INode {
     }
     protected abstract void DoTick();
 
-    public void TryExit() {
+    /// <summary>
+    /// Check whether this node has done execution and can be exited. 
+    /// If yes, any exit steps of the node will be run.
+    /// </summary>
+    protected void TryExit() {
         if (State != NodeState.Running) {
             CleanUp();
-            Context?.Tree.ExitRunningNode(this);
+
+            if (State != NodeState.Unvisited) {
+                Context?.Tree.ExitRunningNode(this);
+            }
         }
     }
 
