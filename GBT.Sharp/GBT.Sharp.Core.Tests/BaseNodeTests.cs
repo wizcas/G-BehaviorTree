@@ -47,7 +47,7 @@ public class BaseNodeTests {
     [InlineData(NodeState.Success)]
     [InlineData(NodeState.Failure)]
     public void ShouldExitIfOnEndStates(NodeState nextState) {
-        _t.Object.Callback = (node) => node.State = nextState;
+        _t.Object.OnTick = (node) => node.State = nextState;
         _t.Object.Tick();
         Assert.Equal(nextState, _t.Object.State);
         _t.Verify(node => node.CleanUp(), Times.Once());

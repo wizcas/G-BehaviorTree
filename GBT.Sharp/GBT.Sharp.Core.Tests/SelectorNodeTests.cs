@@ -26,8 +26,8 @@ public class SelectorNodeTests {
 
     [Fact]
     public void ShouldSuccessWhenAnyChildSucceeds() {
-        _child1.Callback = (node) => node.State = NodeState.Failure;
-        _child2.Callback = (node) => node.State = NodeState.Success;
+        _child1.OnTick = (node) => node.State = NodeState.Failure;
+        _child2.OnTick = (node) => node.State = NodeState.Success;
         _node.Initialize();
         Assert.Equal(_child1, _node.CurrentChild);
         _node.Tick();
@@ -38,8 +38,8 @@ public class SelectorNodeTests {
     }
     [Fact]
     public void ShouldFailIfAllChildrenFail() {
-        _child1.Callback = (node) => node.State = NodeState.Failure;
-        _child2.Callback = (node) => node.State = NodeState.Failure;
+        _child1.OnTick = (node) => node.State = NodeState.Failure;
+        _child2.OnTick = (node) => node.State = NodeState.Failure;
         _node.Initialize();
         Assert.Equal(_child1, _node.CurrentChild);
         _node.Tick();
@@ -50,8 +50,8 @@ public class SelectorNodeTests {
     }
     [Fact]
     public void ShouldKeepRunningIfChildIsRunning() {
-        _child1.Callback = (node) => node.State = NodeState.Running;
-        _child2.Callback = (node) => node.State = NodeState.Success;
+        _child1.OnTick = (node) => node.State = NodeState.Running;
+        _child2.OnTick = (node) => node.State = NodeState.Success;
         _node.Initialize();
         Assert.Equal(_child1, _node.CurrentChild);
         for (var i = 0; i < 10; i++) {

@@ -16,11 +16,11 @@ public class DecoratorNodeTests {
         var child = new CallbackNode("CHILD", "child");
         node.AddChild(child);
 
-        child.Callback = (node) => node.State = NodeState.Success;
+        child.OnTick = (node) => node.State = NodeState.Success;
         node.Tick();
         Assert.Equal(NodeState.Failure, node.State);
 
-        child.Callback = (node) => node.State = NodeState.Failure;
+        child.OnTick = (node) => node.State = NodeState.Failure;
         node.Tick();
         Assert.Equal(NodeState.Success, node.State);
     }
@@ -31,11 +31,11 @@ public class DecoratorNodeTests {
         var child = new CallbackNode("CHILD", "child");
         node.AddChild(child);
 
-        child.Callback = (node) => node.State = NodeState.Success;
+        child.OnTick = (node) => node.State = NodeState.Success;
         node.Tick();
         Assert.Equal(NodeState.Success, node.State);
 
-        child.Callback = (node) => node.State = NodeState.Failure;
+        child.OnTick = (node) => node.State = NodeState.Failure;
         node.Tick();
         Assert.Equal(NodeState.Success, node.State);
     }
@@ -46,7 +46,7 @@ public class DecoratorNodeTests {
         var child = new CallbackNode("CHILD", "child");
         var count = 0;
         node.AddChild(child);
-        child.Callback = (node) => {
+        child.OnTick = (node) => {
             node.State = NodeState.Success;
             count++;
         };
@@ -65,7 +65,7 @@ public class DecoratorNodeTests {
         var child = new CallbackNode("CHILD", "child");
         var count = 0;
         node.AddChild(child);
-        child.Callback = (node) => {
+        child.OnTick = (node) => {
             node.State = NodeState.Failure;
             count++;
         };
@@ -89,7 +89,7 @@ public class DecoratorNodeTests {
         var child = new CallbackNode("CHILD", "child");
         var count = 0;
         node.AddChild(child);
-        child.Callback = (node) => {
+        child.OnTick = (node) => {
             // Since 5th call the child node fails and thus stops the repeating.
             node.State = ++count >= 5 ? NodeState.Failure : NodeState.Success;
         };

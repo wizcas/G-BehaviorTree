@@ -89,6 +89,9 @@ public abstract class BaseNode : INode {
 
     public virtual void CleanUp() { }
     public virtual void Reset() {
+        if (State != NodeState.Unvisited) {
+            CleanUp();
+        }
         State = NodeState.Unvisited;
     }
     protected virtual void OnContextUpdated() { }
@@ -107,11 +110,22 @@ public abstract class BaseNode : INode {
 }
 
 public class CallbackNode : BaseNode {
-    public Action<CallbackNode>? Callback { get; set; }
+    public Action<CallbackNode>? OnInitialize { get; set; }
+    public Action<CallbackNode>? OnTick { get; set; }
+    public Action<CallbackNode>? OnCleanUp { get; set; }
     public CallbackNode(string id, string name) : base(id, name) {
     }
 
     protected override void DoTick() {
-        Callback?.Invoke(this);
+        OnTick?.Invoke(this);
+    }
+
+    public override void Initialize() {
+        base.Initialize();
+        OnInitialize?.Invoke(this);
+    }
+    public override void CleanUp() {
+        base.CleanUp();
+        OnCleanUp?.Invoke(this);
     }
 }
