@@ -3,7 +3,7 @@ using System.Diagnostics.Tracing;
 
 namespace GBT.Sharp.Core;
 
-public struct TreeLog {
+public readonly struct TreeLog {
     public EventLevel Level { get; init; }
     public string Message { get; init; }
     public INode? Node { get; init; }
@@ -14,9 +14,13 @@ public struct TreeLog {
         Node = node;
     }
 }
+
 public static class TreeLogger {
+    public static Action<string>? WriteLog { get; set; }
     public static void Log(EventLevel level, string message, INode? node) {
         // TODO: log to console, file, etc.
+        var formatted = $"[{level}]({node}) {message}";
+        WriteLog?.Invoke(formatted);
     }
     public static void Info(string message, INode? node) {
         Log(EventLevel.Informational, message, node);

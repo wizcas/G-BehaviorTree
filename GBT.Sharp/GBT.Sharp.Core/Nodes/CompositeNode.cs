@@ -21,15 +21,15 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         get {
             if (_currentChildIndex < 0 || _currentChildIndex >= _children.Count) return null;
             INode? child = _children[_currentChildIndex];
-            if (!child.IsEnabled) {
+            if (child.IsDisabled) {
+                // if the current child is disabled, recursively get the next enabled child or quit
                 _currentChildIndex++;
-                // Recursively get the next enabled child or quit
                 child = CurrentChild;
             }
             return child;
         }
         protected set {
-            if (value == null || !value.IsEnabled) {
+            if (value == null || value.IsDisabled) {
                 _currentChildIndex = -1;
                 return;
             }
@@ -41,37 +41,54 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     public override void Initialize() {
         base.Initialize();
         _currentChildIndex = 0;
+        TreeLogger.Info("initialized", this);
     }
-    public override void DoTick() {
+    protected sealed override void DoTick() {
         INode? child = CurrentChild;
         if (child is null) {
-            SetState(NodeState.Failure);
+            State = NodeState.Failure;
             TreeLogger.Error($"failed due to no valid child node on index {_currentChildIndex}", this);
             return;
         }
         child.Tick();
-        OnChildExit(child);
     }
-    protected abstract void OnChildExit(INode child);
+    public void OnChildExit(INode child) {
+        if (child != CurrentChild) {
+            TreeLogger.Warn($"skip: try to exit child {child} but the current child is {CurrentChild}", child);
+            return;
+        }
+        AfterChildExit(child);
+        TryExit();
+    }
+    protected abstract void AfterChildExit(INode child);
     protected override void OnContextUpdated() {
         base.OnContextUpdated();
-        Initialize();
+        if (State == NodeState.Running) {
+            TreeLogger.Info($"running node is re-initialized because context is updated", this);
+            Initialize();
+        }
         foreach (INode child in _children) {
             child.Context = Context;
         }
-        TreeLogger.Info($"re-initialized because context is updated", this);
     }
 
-    public void AttachChild(INode child) {
-        _children.Add(child);
-        child.Context = Context;
-    }
-
-    public bool DetachChild(INode child) {
-        if (_children.Contains(child)) {
-            return _children.Remove(child);
+    public void AddChild(INode child) {
+        if (!_children.Contains(child)) {
+            _children.Add(child);
+            child.Context = Context;
         }
-        return false;
+        if (child.Parent != this) {
+            // In case AddChild is not called from child.SetParent()
+            child.SetParent(this);
+        }
+    }
+
+    public bool RemoveChild(INode child) {
+        var removed = _children.Remove(child);
+        if (removed) {
+            child.Context = null;
+        }
+        return removed;
     }
 }
 
@@ -83,42 +100,46 @@ public class SequenceNode : ListCompositeNode {
     public SequenceNode(string id, string name) : base(id, name) {
     }
 
-    protected override void OnChildExit(INode child) {
+    protected override void AfterChildExit(INode child) {
         switch (child.State) {
             case NodeState.Running:
-                SetState(NodeState.Running);
+                State = NodeState.Running;
                 break;
             case NodeState.Success:
                 _currentChildIndex++;
-                SetState(_currentChildIndex >= _children.Count ? NodeState.Success : NodeState.Running);
+                State = _currentChildIndex >= _children.Count ? NodeState.Success : NodeState.Running;
                 break;
             case NodeState.Failure:
-                SetState(NodeState.Failure);
+                State = NodeState.Failure;
+                break;
+            default:
                 break;
         }
     }
+}
 
-    /// <summary>
-    /// SelectorNode executes its children sequentially until one of them succeeds,
-    /// analogous to the logical OR operator.
-    /// </summary>
-    public class SelectorNode : ListCompositeNode {
-        public SelectorNode(string id, string name) : base(id, name) {
-        }
+/// <summary>
+/// SelectorNode executes its children sequentially until one of them succeeds,
+/// analogous to the logical OR operator.
+/// </summary>
+public class SelectorNode : ListCompositeNode {
+    public SelectorNode(string id, string name) : base(id, name) {
+    }
 
-        protected override void OnChildExit(INode child) {
-            switch (child.State) {
-                case NodeState.Running:
-                    SetState(NodeState.Running);
-                    break;
-                case NodeState.Success:
-                    SetState(NodeState.Success);
-                    break;
-                case NodeState.Failure:
-                    _currentChildIndex++;
-                    SetState(_currentChildIndex >= _children.Count ? NodeState.Failure : NodeState.Running);
-                    break;
-            }
+    protected override void AfterChildExit(INode child) {
+        switch (child.State) {
+            case NodeState.Running:
+                State = NodeState.Running;
+                break;
+            case NodeState.Success:
+                State = NodeState.Success;
+                break;
+            case NodeState.Failure:
+                _currentChildIndex++;
+                State = _currentChildIndex >= _children.Count ? NodeState.Failure : NodeState.Running;
+                break;
+            default:
+                break;
         }
     }
 }

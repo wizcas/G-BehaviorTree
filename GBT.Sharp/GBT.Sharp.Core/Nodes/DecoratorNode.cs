@@ -11,32 +11,50 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
     public DecoratorNode(string id, string name) : base(id, name) {
     }
 
-    private INode? _child;
-    public INode? Child => _child;
-    public void AttachChild(INode child) {
-        if (_child is not null) {
-            DetachChild(_child);
+    public INode? Child { get; private set; }
+    public void AddChild(INode child) {
+        if (child == Child) {
+            return;
         }
-        _child = child;
-        _child.Context = Context;
+        if (Child is not null) {
+            RemoveChild(Child);
+        }
+        Child = child;
+        Child.Context = Context;
+        if (child.Parent != this) {
+            child.SetParent(this);
+        }
     }
 
-    public bool DetachChild(INode child) {
-        if (_child != child) return false;
-        _child.Context = null;
-        _child = null;
+    public bool RemoveChild(INode child) {
+        if (Child != child) {
+            return false;
+        }
+
+        Child.Context = null;
+        Child = null;
         return true;
     }
 
-    public override void DoTick() {
-        if (_child is null) {
-            SetState(NodeState.Failure);
+    public void OnChildExit(INode child) {
+        if (child != Child) {
+            TreeLogger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
+            return;
+        }
+        AfterChildExit(child);
+        TryExit();
+    }
+    protected abstract void AfterChildExit(INode child);
+
+    protected sealed override void DoTick() {
+        if (Child is null) {
+            State = NodeState.Failure;
             TreeLogger.Error("failed for no child is attached", this);
             return;
         }
-        DoTick(_child);
+        DoTick(Child);
     }
-    protected abstract void DoTick(INode child);
+    protected virtual void DoTick(INode child) { child.Tick(); }
 }
 
 /// <summary>
@@ -47,19 +65,12 @@ public class InverterNode : DecoratorNode {
     public InverterNode(string id, string name) : base(id, name) {
     }
 
-    protected override void DoTick(INode child) {
-        child.Tick();
-        switch (child.State) {
-            case NodeState.Success:
-                SetState(NodeState.Failure);
-                break;
-            case NodeState.Failure:
-                SetState(NodeState.Success);
-                break;
-            default:
-                SetState(child.State);
-                break;
-        }
+    protected override void AfterChildExit(INode child) {
+        State = child.State switch {
+            NodeState.Success => NodeState.Failure,
+            NodeState.Failure => NodeState.Success,
+            _ => child.State,
+        };
     }
 }
 
@@ -70,10 +81,10 @@ public class SucceederNode : DecoratorNode {
     public SucceederNode(string id, string name) : base(id, name) {
     }
 
-    protected override void DoTick(INode child) {
-        child.Tick();
-        SetState(NodeState.Success);
+    protected override void AfterChildExit(INode child) {
+        State = NodeState.Success;
     }
+
 }
 
 /// <summary>
@@ -94,21 +105,31 @@ public class RepeaterNode : DecoratorNode {
     public int Times { get; set; } = -1;
     public RepeaterNode(string id, string name) : base(id, name) {
     }
-
-    protected override void DoTick(INode child) {
-        if (Times >= 0 && _currentTimes >= Times) {
-            SetState(NodeState.Success);
-            return;
-        }
-        SetState(NodeState.Running);
-        child.Tick();
-        if (child.State is NodeState.Success or NodeState.Failure) {
-            _currentTimes++;
-        }
-    }
     public override void Initialize() {
         base.Initialize();
         _currentTimes = 0;
+    }
+    protected override void DoTick(INode child) {
+        if (ShouldStop()) {
+            State = NodeState.Success;
+            TreeLogger.Warn($"repeater node not run at all: current times is {_currentTimes}, while the repeat times is {Times}", this);
+            return;
+        }
+        State = NodeState.Running;
+        child.Tick();
+    }
+
+    private bool ShouldStop() {
+        return Times >= 0 && _currentTimes >= Times;
+    }
+
+    protected override void AfterChildExit(INode child) {
+        if (child.State is NodeState.Success or NodeState.Failure) {
+            _currentTimes++;
+        }
+        if (ShouldStop()) {
+            State = NodeState.Success;
+        }
     }
 }
 
@@ -119,18 +140,11 @@ public class RepeatUntilFailureNode : DecoratorNode {
     public RepeatUntilFailureNode(string id, string name) : base(id, name) {
     }
 
-    protected override void DoTick(INode child) {
-        child.Tick();
-        switch (child.State) {
-            case NodeState.Success:
-                SetState(NodeState.Running);
-                break;
-            case NodeState.Failure:
-                SetState(NodeState.Success);
-                break;
-            default:
-                SetState(child.State);
-                break;
-        }
+    protected override void AfterChildExit(INode child) {
+        State = child.State switch {
+            NodeState.Success => NodeState.Running,
+            NodeState.Failure => NodeState.Success,
+            _ => child.State,
+        };
     }
 }

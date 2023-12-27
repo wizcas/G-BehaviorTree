@@ -5,7 +5,8 @@ namespace GBT.Sharp.Core;
 public class BehaviorTree {
     private ITreeContext _context;
     private INode? _rootNode;
-    private INode? _runningNode;
+
+    public INode? RunningNode { get; private set; }
 
     public ITreeContext Context {
         get => _context;
@@ -17,49 +18,48 @@ public class BehaviorTree {
         }
     }
 
-    public BehaviorTree(ITreeContext treeContext) {
-        _context = treeContext;
+    public BehaviorTree(ITreeContext? context = null) {
+        _context = context ?? CreateContext();
     }
 
     public void SetRootNode(INode rootNode) {
         _rootNode = rootNode;
-        if (_context == null) {
-            CreateContext();
-        }
         _rootNode.Context = _context;
     }
 
     public void Tick() {
+        Context.NewTrace();
         if (_rootNode is null) {
             TreeLogger.Error("the tree has no root node", null);
         } else {
-            (_runningNode ?? _rootNode).Tick();
+            (RunningNode ?? _rootNode).Tick();
         }
     }
 
     public void SetRunningNode(INode node) {
-        _runningNode = node;
+        RunningNode = node;
     }
     public void ExitRunningNode(INode node) {
-        if (_runningNode != node) {
-            TreeLogger.Warn($"skip: try to exit running node {node} but the running node is {_runningNode}", node);
+        if (RunningNode != node) {
+            TreeLogger.Warn($"skip: try to exit running node {node} but the running node is {RunningNode}", node);
             return;
         }
-        _runningNode = _runningNode?.Parent;
+        RunningNode = node.Parent;
+        node.Parent?.OnChildExit(node);
     }
     public void Interrupt() {
-        if (_runningNode is null) return;
+        if (RunningNode is null) return;
 
-        INode? node = _runningNode;
+        INode? node = RunningNode;
         while (node is not null) {
             node.Reset();
             node = node.Parent;
         }
-        _runningNode = null;
+        RunningNode = null;
     }
 
-    private void CreateContext() {
-        _context = new TreeContext(this);
+    private TreeContext CreateContext() {
+        return new TreeContext(this);
     }
 
     private void OnContextChanged() {

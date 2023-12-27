@@ -4,20 +4,23 @@
 public interface INode {
     string ID { get; }
     string Name { get; }
-    NodeState State { get; }
-    bool IsEnabled { get; }
-    INode? Parent { get; }
+    NodeState State { get; set; }
+    bool IsDisabled { get; set; }
+    IParentNode? Parent { get; }
     ITreeContext? Context { get; set; }
 
     void Initialize();
     void Tick();
-    void Exit();
+    void CleanUp();
     void Reset();
+    void SetParent(IParentNode? parent);
+    void TryExit();
 }
 
 public interface IParentNode : INode {
-    void AttachChild(INode child);
-    bool DetachChild(INode child);
+    void AddChild(INode child);
+    bool RemoveChild(INode child);
+    void OnChildExit(INode child);
 }
 
 public interface ILeafNode : INode { }
@@ -33,9 +36,9 @@ public abstract class BaseNode : INode {
     public string ID { get; }
     public string Name { get; set; }
 
-    public NodeState State { get; private set; }
+    public NodeState State { get; set; }
 
-    public bool IsEnabled { get; set; }
+    public bool IsDisabled { get; set; }
 
     private ITreeContext? _context;
     public ITreeContext? Context {
@@ -47,9 +50,8 @@ public abstract class BaseNode : INode {
             }
         }
     }
-    protected bool CanTick => Context is not null && IsEnabled;
 
-    public INode? Parent { get; set; }
+    public IParentNode? Parent { get; set; }
 
     public BaseNode(string id, string name) {
         ID = id;
@@ -61,35 +63,69 @@ public abstract class BaseNode : INode {
 
     public void Tick() {
         if (Context is null) {
-            SetState(NodeState.Failure);
-            TreeLogger.Error("failed for no context", this);
+            TreeLogger.Error("this node has no context", this);
             return;
         }
-        if (!IsEnabled) {
-            SetState(NodeState.Failure);
+        if (IsDisabled) {
             return;
         }
         if (State != NodeState.Running) {
+            Context.CurrentTrace.Add(this);
             Initialize();
             Context.Tree.SetRunningNode(this);
         }
         State = NodeState.Running;
         DoTick();
+        TryExit();
+    }
+    protected abstract void DoTick();
+
+    public void TryExit() {
         if (State != NodeState.Running) {
-            Exit();
-            Context.Tree.ExitRunningNode(this);
+            CleanUp();
+            Context?.Tree.ExitRunningNode(this);
         }
     }
-    public abstract void DoTick();
 
-    public virtual void Exit() {
-    }
+    public virtual void CleanUp() { }
     public virtual void Reset() {
+        if (State != NodeState.Unvisited) {
+            CleanUp();
+        }
         State = NodeState.Unvisited;
     }
-
-    protected void SetState(NodeState state) {
-        State = state;
-    }
     protected virtual void OnContextUpdated() { }
+
+    public void SetParent(IParentNode? parent) {
+        if (parent == Parent) {
+            return;
+        }
+
+        if (Parent is not null and IParentNode oldParent) {
+            oldParent.RemoveChild(this);
+        }
+        Parent = parent;
+        parent?.AddChild(this);
+    }
+}
+
+public class CallbackNode : BaseNode {
+    public Action<CallbackNode>? OnInitialize { get; set; }
+    public Action<CallbackNode>? OnTick { get; set; }
+    public Action<CallbackNode>? OnCleanUp { get; set; }
+    public CallbackNode(string id, string name) : base(id, name) {
+    }
+
+    protected override void DoTick() {
+        OnTick?.Invoke(this);
+    }
+
+    public override void Initialize() {
+        base.Initialize();
+        OnInitialize?.Invoke(this);
+    }
+    public override void CleanUp() {
+        base.CleanUp();
+        OnCleanUp?.Invoke(this);
+    }
 }
