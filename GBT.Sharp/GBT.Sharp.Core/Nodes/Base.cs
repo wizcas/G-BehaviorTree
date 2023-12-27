@@ -83,4 +83,8 @@ public abstract class BaseNode : INode {
         _parent = parent;
         parent?.AddChild(this);
     }
+
+    public override string ToString() {
+        return $"{Name} ({ID}/{GetType().Name})";
+    }
 }
