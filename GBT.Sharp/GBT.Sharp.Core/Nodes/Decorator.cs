@@ -44,7 +44,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
 
     public void OnChildExit(INode child) {
         if (child != Child) {
-            TreeLogger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
+            BehaviorTree.Logger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
             return;
         }
         AfterChildExit(child);
@@ -55,7 +55,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
     protected sealed override void DoTick() {
         if (Child is null) {
             State = NodeState.Failure;
-            TreeLogger.Error("failed for no child is attached", this);
+            BehaviorTree.Logger.Error("failed for no child is attached", this);
             return;
         }
         DoTick(Child);
@@ -137,7 +137,7 @@ public class RepeaterNode : DecoratorNode {
     protected override void DoTick(INode child) {
         if (ShouldStop()) {
             State = NodeState.Success;
-            TreeLogger.Warn($"repeater node not run at all: current times is {_currentTimes}, while the repeat times is {Times}", this);
+            BehaviorTree.Logger.Warn($"repeater node not run at all: current times is {_currentTimes}, while the repeat times is {Times}", this);
             return;
         }
         State = NodeState.Running;

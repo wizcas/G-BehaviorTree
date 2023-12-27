@@ -7,6 +7,7 @@ public interface ITreeContext {
     BehaviorTree Tree { get; init; }
     IEnumerable<TreeTrace> Histories { get; }
     TreeTrace CurrentTrace { get; }
+    TreeLogger Logger { get; }
 
     void NewTrace();
 }
@@ -29,6 +30,7 @@ public class TreeTrace : IEnumerable<INode> {
 
 public class TreeContext : ITreeContext {
     public BehaviorTree Tree { get; init; }
+    public TreeLogger Logger => BehaviorTree.Logger;
 
     private readonly List<TreeTrace> _histories = new();
     public IEnumerable<TreeTrace> Histories => _histories;

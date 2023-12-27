@@ -39,7 +39,7 @@ public abstract class BaseNode : INode {
 
     public void Tick() {
         if (Context is null) {
-            TreeLogger.Error("this node has no context", this);
+            BehaviorTree.Logger.Error("this node has no context", this);
             return;
         }
         if (IsDisabled) {

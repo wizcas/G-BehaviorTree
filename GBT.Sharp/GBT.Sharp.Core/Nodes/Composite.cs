@@ -48,20 +48,20 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     public override void Initialize() {
         base.Initialize();
         _currentChildIndex = 0;
-        TreeLogger.Info("initialized", this);
+        BehaviorTree.Logger.Info("initialized", this);
     }
     protected sealed override void DoTick() {
         INode? child = CurrentChild;
         if (child is null) {
             State = NodeState.Failure;
-            TreeLogger.Error($"failed due to no valid child node on index {_currentChildIndex}", this);
+            BehaviorTree.Logger.Error($"failed due to no valid child node on index {_currentChildIndex}", this);
             return;
         }
         child.Tick();
     }
     public void OnChildExit(INode child) {
         if (child != CurrentChild) {
-            TreeLogger.Warn($"skip: try to exit child {child} but the current child is {CurrentChild}", child);
+            BehaviorTree.Logger.Warn($"skip: try to exit child {child} but the current child is {CurrentChild}", child);
             return;
         }
         AfterChildExit(child);
@@ -71,7 +71,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     protected override void OnContextUpdated() {
         base.OnContextUpdated();
         if (State == NodeState.Running) {
-            TreeLogger.Info($"running node is re-initialized because context is updated", this);
+            BehaviorTree.Logger.Info($"running node is re-initialized because context is updated", this);
             Initialize();
         }
         foreach (INode child in _children) {
