@@ -51,9 +51,16 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
             return;
         }
         child.Tick();
-        OnChildExit(child);
     }
-    protected abstract void OnChildExit(INode child);
+    public void OnChildExit(INode child) {
+        if (child != CurrentChild) {
+            TreeLogger.Warn($"skip: try to exit child {child} but the current child is {CurrentChild}", child);
+            return;
+        }
+        AfterChildExit(child);
+        TryExit();
+    }
+    protected abstract void AfterChildExit(INode child);
     protected override void OnContextUpdated() {
         base.OnContextUpdated();
         if (State == NodeState.Running) {
@@ -65,17 +72,23 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         }
     }
 
-    public void AttachChild(INode child) {
-        _children.Add(child);
-        child.Context = Context;
+    public void AddChild(INode child) {
+        if (!_children.Contains(child)) {
+            _children.Add(child);
+            child.Context = Context;
+        }
+        if (child.Parent != this) {
+            // In case AddChild is not called from child.SetParent()
+            child.SetParent(this);
+        }
     }
 
-    public bool DetachChild(INode child) {
-        if (_children.Contains(child)) {
-            return _children.Remove(child);
-        } else {
-            return false;
+    public bool RemoveChild(INode child) {
+        var removed = _children.Remove(child);
+        if (removed) {
+            child.Context = null;
         }
+        return removed;
     }
 }
 
@@ -87,7 +100,7 @@ public class SequenceNode : ListCompositeNode {
     public SequenceNode(string id, string name) : base(id, name) {
     }
 
-    protected override void OnChildExit(INode child) {
+    protected override void AfterChildExit(INode child) {
         switch (child.State) {
             case NodeState.Running:
                 State = NodeState.Running;
@@ -113,7 +126,7 @@ public class SelectorNode : ListCompositeNode {
     public SelectorNode(string id, string name) : base(id, name) {
     }
 
-    protected override void OnChildExit(INode child) {
+    protected override void AfterChildExit(INode child) {
         switch (child.State) {
             case NodeState.Running:
                 State = NodeState.Running;

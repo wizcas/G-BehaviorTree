@@ -13,14 +13,14 @@ public class DecoratorNodeTests {
     public void ShouldInverterNodeInvertChildResult() {
         var node = new InverterNode("INVERTER", "inverter");
         _tree.SetRootNode(node);
-        var child = new TestNode("CHILD", "child");
-        node.AttachChild(child.Node);
+        var child = new CallbackNode("CHILD", "child");
+        node.AddChild(child);
 
-        child.MockNextState(NodeState.Success);
+        child.Callback = (node) => node.State = NodeState.Success;
         node.Tick();
         Assert.Equal(NodeState.Failure, node.State);
 
-        child.MockNextState(NodeState.Failure);
+        child.Callback = (node) => node.State = NodeState.Failure;
         node.Tick();
         Assert.Equal(NodeState.Success, node.State);
     }
@@ -28,14 +28,14 @@ public class DecoratorNodeTests {
     public void ShouldSucceederNodeAlwaysReturnSuccess() {
         var node = new SucceederNode("SUCCEEDER", "succeeder");
         _tree.SetRootNode(node);
-        var child = new TestNode("CHILD", "child");
-        node.AttachChild(child.Node);
+        var child = new CallbackNode("CHILD", "child");
+        node.AddChild(child);
 
-        child.MockNextState(NodeState.Success);
+        child.Callback = (node) => node.State = NodeState.Success;
         node.Tick();
         Assert.Equal(NodeState.Success, node.State);
 
-        child.MockNextState(NodeState.Failure);
+        child.Callback = (node) => node.State = NodeState.Failure;
         node.Tick();
         Assert.Equal(NodeState.Success, node.State);
     }
@@ -43,15 +43,18 @@ public class DecoratorNodeTests {
     public void ShouldRepeaterNodeRepeatChildInfinitelyWithTimesUnset() {
         var node = new RepeaterNode("REPEATER", "repeater");
         _tree.SetRootNode(node);
-        var child = new TestNode("CHILD", "child");
+        var child = new CallbackNode("CHILD", "child");
         var count = 0;
-        child.MockNextState(NodeState.Success, () => count++);
-        node.AttachChild(child.Node);
+        node.AddChild(child);
+        child.Callback = (node) => {
+            node.State = NodeState.Success;
+            count++;
+        };
 
         for (var i = 0; i < 100; i++) {
             node.Tick();
             Assert.Equal(NodeState.Running, node.State);
-            Assert.Equal(NodeState.Success, child.Node.State);
+            Assert.Equal(NodeState.Success, child.State);
         }
         Assert.Equal(100, count);
     }
@@ -59,10 +62,13 @@ public class DecoratorNodeTests {
     public void ShouldRepeaterNodeRepeatChildWithGivenTimes() {
         var node = new RepeaterNode("REPEATER", "repeater") { Times = 10 };
         _tree.SetRootNode(node);
-        var child = new TestNode("CHILD", "child");
+        var child = new CallbackNode("CHILD", "child");
         var count = 0;
-        child.MockNextState(NodeState.Failure, () => count++);
-        node.AttachChild(child.Node);
+        node.AddChild(child);
+        child.Callback = (node) => {
+            node.State = NodeState.Failure;
+            count++;
+        };
 
         for (var i = 0; i < 10; i++) {
             node.Tick();
@@ -80,13 +86,13 @@ public class DecoratorNodeTests {
     public void ShouldRepeatUntilFailureNodeRepeatChildUntilFailure() {
         var node = new RepeatUntilFailureNode("REPEAT_UNTIL_FAILURE", "repeat until failure");
         _tree.SetRootNode(node);
-        var child = new TestNode("CHILD", "child");
+        var child = new CallbackNode("CHILD", "child");
         var count = 0;
-        child.MockNextState(NodeState.Failure, () => {
+        node.AddChild(child);
+        child.Callback = (node) => {
             // Since 5th call the child node fails and thus stops the repeating.
-            child.Node.State = ++count >= 5 ? NodeState.Failure : NodeState.Success;
-        });
-        node.AttachChild(child.Node);
+            node.State = ++count >= 5 ? NodeState.Failure : NodeState.Success;
+        };
 
         for (var i = 0; i < 10; i++) {
             node.Tick();

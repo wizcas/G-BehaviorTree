@@ -8,6 +8,7 @@ public class TestNode {
         Mock.Setup(node => node.ID).Returns(id);
         Mock.Setup(node => node.Name).Returns(name);
     }
+    public TestNode() : this("TEST", "test node") { }
 
     public Mock<INode> Mock { get; init; } = new();
     public INode Node => Mock.Object;
@@ -19,5 +20,15 @@ public class TestNode {
             Node.State = nextState;
             callback?.Invoke();
         });
+    }
+}
+
+public class CounterNode(string id, string name) : BaseNode(id, name) {
+    public int Count { get; private set; }
+    public override void Initialize() {
+        Count = 0;
+    }
+    protected override void DoTick() {
+        Count++;
     }
 }

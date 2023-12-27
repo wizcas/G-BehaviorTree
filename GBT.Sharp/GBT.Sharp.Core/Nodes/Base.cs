@@ -6,18 +6,21 @@ public interface INode {
     string Name { get; }
     NodeState State { get; set; }
     bool IsDisabled { get; set; }
-    INode? Parent { get; }
+    IParentNode? Parent { get; }
     ITreeContext? Context { get; set; }
 
     void Initialize();
     void Tick();
     void CleanUp();
     void Reset();
+    void SetParent(IParentNode? parent);
+    void TryExit();
 }
 
 public interface IParentNode : INode {
-    void AttachChild(INode child);
-    bool DetachChild(INode child);
+    void AddChild(INode child);
+    bool RemoveChild(INode child);
+    void OnChildExit(INode child);
 }
 
 public interface ILeafNode : INode { }
@@ -48,7 +51,7 @@ public abstract class BaseNode : INode {
         }
     }
 
-    public INode? Parent { get; set; }
+    public IParentNode? Parent { get; set; }
 
     public BaseNode(string id, string name) {
         ID = id;
@@ -67,32 +70,48 @@ public abstract class BaseNode : INode {
             return;
         }
         if (State != NodeState.Running) {
+            Context.CurrentTrace.Add(this);
             Initialize();
             Context.Tree.SetRunningNode(this);
         }
         State = NodeState.Running;
         DoTick();
-        if (State != NodeState.Running) {
-            CleanUp();
-            Context.Tree.ExitRunningNode(this);
-        }
+        TryExit();
     }
     protected abstract void DoTick();
 
-    public virtual void CleanUp() {
+    public void TryExit() {
+        if (State != NodeState.Running) {
+            CleanUp();
+            Context?.Tree.ExitRunningNode(this);
+        }
     }
+
+    public virtual void CleanUp() { }
     public virtual void Reset() {
         State = NodeState.Unvisited;
     }
     protected virtual void OnContextUpdated() { }
+
+    public void SetParent(IParentNode? parent) {
+        if (parent == Parent) {
+            return;
+        }
+
+        if (Parent is not null and IParentNode oldParent) {
+            oldParent.RemoveChild(this);
+        }
+        Parent = parent;
+        parent?.AddChild(this);
+    }
 }
 
 public class CallbackNode : BaseNode {
-    public Action? Callback { get; set; }
+    public Action<CallbackNode>? Callback { get; set; }
     public CallbackNode(string id, string name) : base(id, name) {
     }
 
     protected override void DoTick() {
-        Callback?.Invoke();
+        Callback?.Invoke(this);
     }
 }
