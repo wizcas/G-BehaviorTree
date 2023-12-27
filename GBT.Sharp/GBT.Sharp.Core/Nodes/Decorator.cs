@@ -22,7 +22,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
         Child = child;
         Child.Context = Context;
         if (child.Parent != this) {
-            child.SetParent(this);
+            child.Parent = this;
         }
     }
 

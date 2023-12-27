@@ -79,7 +79,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         }
         if (child.Parent != this) {
             // In case AddChild is not called from child.SetParent()
-            child.SetParent(this);
+            child.Parent = this;
         }
     }
 
