@@ -11,9 +11,9 @@ public class DecoratorNodeTests {
 
     [Fact]
     public void ShouldInverterNodeInvertChildResult() {
-        var node = new InverterNode("INVERTER", "inverter");
+        var node = new InverterNode("inverter");
         _tree.SetRootNode(node);
-        var child = new CallbackNode("CHILD", "child");
+        var child = new CallbackNode("child");
         node.AddChild(child);
 
         child.OnTick = (node) => node.State = NodeState.Success;
@@ -26,9 +26,9 @@ public class DecoratorNodeTests {
     }
     [Fact]
     public void ShouldSucceederNodeAlwaysReturnSuccess() {
-        var node = new SucceederNode("SUCCEEDER", "succeeder");
+        var node = new SucceederNode("succeeder");
         _tree.SetRootNode(node);
-        var child = new CallbackNode("CHILD", "child");
+        var child = new CallbackNode("child");
         node.AddChild(child);
 
         child.OnTick = (node) => node.State = NodeState.Success;
@@ -41,9 +41,9 @@ public class DecoratorNodeTests {
     }
     [Fact]
     public void ShouldRepeaterNodeRepeatChildInfinitelyWithTimesUnset() {
-        var node = new RepeaterNode("REPEATER", "repeater");
+        var node = new RepeaterNode("repeater");
         _tree.SetRootNode(node);
-        var child = new CallbackNode("CHILD", "child");
+        var child = new CallbackNode("child");
         var count = 0;
         node.AddChild(child);
         child.OnTick = (node) => {
@@ -60,9 +60,9 @@ public class DecoratorNodeTests {
     }
     [Fact]
     public void ShouldRepeaterNodeRepeatChildWithGivenTimes() {
-        var node = new RepeaterNode("REPEATER", "repeater") { Times = 10 };
+        var node = new RepeaterNode("repeater") { Times = 10 };
         _tree.SetRootNode(node);
-        var child = new CallbackNode("CHILD", "child");
+        var child = new CallbackNode("child");
         var count = 0;
         node.AddChild(child);
         child.OnTick = (node) => {
@@ -84,9 +84,9 @@ public class DecoratorNodeTests {
     }
     [Fact]
     public void ShouldRepeatUntilFailureNodeRepeatChildUntilFailure() {
-        var node = new RepeatUntilFailureNode("REPEAT_UNTIL_FAILURE", "repeat until failure");
+        var node = new RepeatUntilFailureNode("repeat until failure");
         _tree.SetRootNode(node);
-        var child = new CallbackNode("CHILD", "child");
+        var child = new CallbackNode("child");
         var count = 0;
         node.AddChild(child);
         child.OnTick = (node) => {

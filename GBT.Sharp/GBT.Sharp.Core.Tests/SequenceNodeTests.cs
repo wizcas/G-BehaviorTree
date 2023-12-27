@@ -13,9 +13,9 @@ public class SequenceNodeTests {
         _output = output;
         // TreeLogger.WriteLog = output.WriteLine;
 
-        _node = new("TEST SEQUENCE NODE", "test sequence");
-        _child1 = new CallbackNode("CHILD 1", "child 1");
-        _child2 = new CallbackNode("CHILD 2", "child 2");
+        _node = new("test sequence");
+        _child1 = new CallbackNode("child 1");
+        _child2 = new CallbackNode("child 2");
         _node.AddChild(_child1);
         _node.AddChild(_child2);
 

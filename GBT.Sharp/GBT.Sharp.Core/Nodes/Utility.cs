@@ -12,6 +12,12 @@ public class CallbackNode : BaseNode {
     public CallbackNode(string id, string name) : base(id, name) {
     }
 
+    public CallbackNode(string name) : base(name) {
+    }
+
+    public CallbackNode() {
+    }
+
     protected override void DoTick() {
         OnTick?.Invoke(this);
     }

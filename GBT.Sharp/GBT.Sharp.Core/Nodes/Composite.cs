@@ -38,6 +38,13 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     }
     public ListCompositeNode(string id, string name) : base(id, name) {
     }
+
+    protected ListCompositeNode(string name) : base(name) {
+    }
+
+    protected ListCompositeNode() {
+    }
+
     public override void Initialize() {
         base.Initialize();
         _currentChildIndex = 0;
@@ -97,6 +104,12 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
 /// analogous to the logical AND operator.
 /// </summary>
 public class SequenceNode : ListCompositeNode {
+    public SequenceNode() {
+    }
+
+    public SequenceNode(string name) : base(name) {
+    }
+
     public SequenceNode(string id, string name) : base(id, name) {
     }
 
@@ -123,6 +136,12 @@ public class SequenceNode : ListCompositeNode {
 /// analogous to the logical OR operator.
 /// </summary>
 public class SelectorNode : ListCompositeNode {
+    public SelectorNode() {
+    }
+
+    public SelectorNode(string name) : base(name) {
+    }
+
     public SelectorNode(string id, string name) : base(id, name) {
     }
 

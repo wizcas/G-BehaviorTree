@@ -1,4 +1,6 @@
-﻿namespace GBT.Sharp.Core.Nodes;
+﻿using NanoidDotNet;
+
+namespace GBT.Sharp.Core.Nodes;
 
 
 public abstract class BaseNode : INode {
@@ -28,6 +30,10 @@ public abstract class BaseNode : INode {
         Name = name;
         Reset();
     }
+    public BaseNode(string name) : this(Nanoid.Generate(), name) {
+        ID = Nanoid.Generate();
+    }
+    public BaseNode() : this("Unnamed") { }
 
     public virtual void Initialize() { }
 
@@ -74,7 +80,7 @@ public abstract class BaseNode : INode {
         if (Parent is not null and IParentNode oldParent) {
             oldParent.RemoveChild(this);
         }
-        Parent = parent;
+        _parent = parent;
         parent?.AddChild(this);
     }
 }
