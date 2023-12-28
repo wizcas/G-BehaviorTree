@@ -6,10 +6,10 @@ public class BehaviorTree {
     public static TreeLogger Logger { get; } = new TreeLogger();
 
 
-    private ITreeContext _context;
+    private TreeContext _context;
     private Node? _rootNode;
 
-    public ITreeContext Context {
+    public TreeContext Context {
         get => _context;
         set {
             if (_context != value) {
@@ -19,7 +19,7 @@ public class BehaviorTree {
         }
     }
 
-    public BehaviorTree(ITreeContext? context = null) {
+    public BehaviorTree(TreeContext? context = null) {
         _context = context ?? CreateContext();
     }
 

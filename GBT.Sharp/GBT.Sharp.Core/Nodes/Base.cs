@@ -27,8 +27,8 @@ public abstract class Node {
 
     public bool IsDisabled { get; set; }
 
-    private ITreeContext? _context;
-    public ITreeContext? Context {
+    private TreeContext? _context;
+    public TreeContext? Context {
         get => _context;
         set {
             if (_context != value) {
@@ -37,6 +37,8 @@ public abstract class Node {
             }
         }
     }
+    private NodeContext? _nodeContext;
+    public NodeContext NodeContext => _nodeContext ??= Context?.GetNodeContext<NodeContext>(this)!;
 
     public Node(string id, string name) {
         ID = id;
@@ -110,6 +112,7 @@ public abstract class Node {
         State = NodeState.Unvisited;
     }
     protected virtual void OnContextChanged() {
+        _nodeContext = null;
     }
 
     private void SetParent(Node? parent) {
@@ -167,4 +170,17 @@ public abstract class Node {
             return node;
         }
     }
+}
+
+public abstract class Node<TContext> : Node where TContext : NodeContext {
+    protected Node() {
+    }
+
+    protected Node(string name) : base(name) {
+    }
+
+    protected Node(string id, string name) : base(id, name) {
+    }
+
+    public new TContext? NodeContext => Context?.GetNodeContext<TContext>(this);
 }

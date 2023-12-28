@@ -27,45 +27,38 @@ public class SequenceNodeTests {
     public void ShouldSuccessOnAllChildrenSuccess() {
         _child1.OnTick = (node) => node.State = NodeState.Success;
         _child2.OnTick = (node) => node.State = NodeState.Success;
-        _node.Initialize();
-        Assert.Equal(_child1, _node.CurrentChild);
         _node.Tick();
-        Assert.Equal(_child2, _node.CurrentChild);
+        Assert.Equal(NodeState.Running, _node.State);
+        Assert.Equal(_child2, _node.NodeContext?.CurrentChild);
         _node.Tick();
         Assert.Equal(NodeState.Success, _node.State);
-        Assert.Null(_node.CurrentChild);
+        Assert.Null(_node.NodeContext?.CurrentChild);
     }
     [Fact]
     public void ShouldFailWhenAnyChildFails() {
         _child1.OnTick = (node) => node.State = NodeState.Failure;
         _child2.OnTick = (node) => node.State = NodeState.Success;
-        _node.Initialize();
-        Assert.Equal(_child1, _node.CurrentChild);
         _node.Tick();
         Assert.Equal(NodeState.Failure, _node.State);
-        Assert.Null(_node.CurrentChild);
+        Assert.Null(_node.NodeContext?.CurrentChild);
     }
     [Fact]
     public void ShouldKeepRunningIfChildIsRunning() {
         _child1.OnTick = (node) => node.State = NodeState.Running;
         _child2.OnTick = (node) => node.State = NodeState.Success;
-        _node.Initialize();
-        Assert.Equal(_child1, _node.CurrentChild);
         for (var i = 0; i < 10; i++) {
             _node.Tick();
             Assert.Equal(NodeState.Running, _node.State);
-            Assert.Equal(_child1, _node.CurrentChild);
+            Assert.Equal(_child1, _node.NodeContext?.CurrentChild);
         }
     }
     [Fact]
     public void ShouldSkipDisabledNode() {
         _child1.IsDisabled = true;
         _child2.OnTick = (node) => node.State = NodeState.Success;
-        _node.Initialize();
-        Assert.Equal(_child2, _node.CurrentChild);
         _node.Tick();
         Assert.Equal(NodeState.Success, _node.State);
-        Assert.Null(_node.CurrentChild);
+        Assert.Null(_node.NodeContext?.CurrentChild);
         Assert.Equivalent(new[] { _child2.ID, "<tree>" },
                           _tree.Context.Trace.Passes.FirstOrDefault()?.FootprintsByNodes.Keys);
     }
