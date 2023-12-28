@@ -73,35 +73,20 @@ public class BaseNodeTests {
         Dictionary<string, Node> loadedNodes = [];
         Node[] results = saves.Select(save => save.LoadNode(loadedNodes)).ToArray();
         index = 0;
-        Assert.Equivalent(new {
-            root.ID,
-            root.Name,
-            root.IsDisabled,
-        }, new {
-            results[0].ID,
-            results[0].Name,
-            results[0].IsDisabled,
-        });
+        foreach (Node node in new Node[] { root, child1, child2 }) {
+            Node result = results[index++];
+            Assert.Equivalent(new {
+                node.ID,
+                node.Name,
+                node.IsDisabled,
+            }, new {
+                result.ID,
+                result.Name,
+                result.IsDisabled,
+            });
+        }
         Assert.Equivalent(
             root.Children.Select(c => c.ID),
             (results[0] as IParentNode)?.Children.Select(c => c.ID));
-        Assert.Equivalent(new {
-            child1.ID,
-            child1.Name,
-            child1.IsDisabled,
-        }, new {
-            results[1].ID,
-            results[1].Name,
-            results[1].IsDisabled,
-        });
-        Assert.Equivalent(new {
-            child2.ID,
-            child2.Name,
-            child2.IsDisabled,
-        }, new {
-            results[2].ID,
-            results[2].Name,
-            results[2].IsDisabled,
-        });
     }
 }
