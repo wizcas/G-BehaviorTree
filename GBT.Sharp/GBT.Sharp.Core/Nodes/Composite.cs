@@ -4,7 +4,6 @@
 /// The node controls the flow of execution of its children in a specific way.
 /// </summary>
 public interface ICompositeNode : IParentNode {
-    IEnumerable<Node> Children { get; }
     Node? CurrentChild { get; }
 }
 
@@ -26,8 +25,6 @@ public abstract class ListCompositeNode : Node, ICompositeNode {
             Node? child = _children[_currentChildIndex];
             if (child.IsDisabled) {
                 // if the current child is disabled, recursively get the next enabled child or quit
-                //_currentChildIndex++;
-                //child = CurrentChild;
                 child = CurrentChild = PeekNextChild();
             }
             return child;
@@ -114,8 +111,22 @@ public abstract class ListCompositeNode : Node, ICompositeNode {
         while (nextIndex < _children.Count && (nextChild = _children[nextIndex]).IsDisabled) {
             nextIndex++;
         };
-        if (nextIndex >= _children.Count) return null;
-        return nextChild;
+        return nextIndex >= _children.Count ? null : nextChild;
+    }
+
+    protected override void LoadSaveData(SaveData save) {
+        base.LoadSaveData(save);
+        if (save.Data.TryGetValue(nameof(Children), out var children)) {
+            if (children is null) {
+                BehaviorTree.Logger.Warn($"failed to load children from save data due to null data", this);
+                return;
+            }
+            if (children is not List<Node> validChildren) {
+                BehaviorTree.Logger.Error($"failed to load children from save data due to mistmatching data type: {children.GetType().Name}", this);
+                return;
+            }
+            _children = validChildren;
+        }
     }
 }
 

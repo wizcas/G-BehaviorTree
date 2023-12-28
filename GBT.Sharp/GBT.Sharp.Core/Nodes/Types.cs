@@ -11,6 +11,7 @@ public enum NodeState {
 /// Represents a node that can have children attached to it.
 /// </summary>
 public interface IParentNode {
+    public IEnumerable<Node> Children { get; }
     /// <summary>
     /// Adding a child to this node. Depending on the type of the node,
     /// this may substitute the current child or add the child to a list.

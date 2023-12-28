@@ -1,4 +1,5 @@
-﻿using NanoidDotNet;
+﻿using MessagePack;
+using NanoidDotNet;
 
 namespace GBT.Sharp.Core.Nodes;
 
@@ -129,5 +130,38 @@ public abstract class Node {
 
     public override string ToString() {
         return $"{Name} ({ID}/{GetType().Name})";
+    }
+
+    public void Save(List<SaveData> savedNodes) {
+        savedNodes.Add(GetSaveData());
+        if (this is IParentNode parent) {
+            foreach (Node child in parent.Children) {
+                child.Save(savedNodes);
+            }
+        }
+    }
+
+    protected virtual SaveData GetSaveData() {
+        return SaveData.FromNode(this);
+    }
+    protected virtual void LoadSaveData(SaveData save) {
+        IsDisabled = save.IsDisabled;
+    }
+
+    [MessagePackObject]
+    public record SaveData(Type NodeType, string ID, string Name, string? ParentID, bool IsDisabled) {
+        public Dictionary<string, object?> Data { get; } = new();
+        public static SaveData FromNode(Node node) {
+            return new(node.GetType(), node.ID, node.Name, node.Parent?.ID, node.IsDisabled);
+        }
+        public Node LoadNode(Dictionary<string, Node> loadedNodes) {
+            var node = (Node)Activator.CreateInstance(NodeType, new object[] { ID, Name })!;
+            node.LoadSaveData(this);
+            loadedNodes.Add(ID, node);
+            if (ParentID is not null && loadedNodes.TryGetValue(ParentID, out Node? parent) && parent is IParentNode parentNode) {
+                node.Parent = parent;
+            }
+            return node;
+        }
     }
 }

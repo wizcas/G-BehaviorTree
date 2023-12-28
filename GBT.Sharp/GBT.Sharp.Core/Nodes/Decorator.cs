@@ -18,6 +18,7 @@ public abstract class DecoratorNode : Node, IDecoratorNode {
     }
 
     public Node? Child { get; private set; }
+    public IEnumerable<Node> Children => Child is null ? Enumerable.Empty<Node>() : new[] { Child };
     public void AddChild(Node child) {
         if (child == Child) {
             return;
