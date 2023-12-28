@@ -6,7 +6,6 @@ namespace GBT.Sharp.Core.Nodes;
 /// The base class of all Behavior Tree Nodes, which defines
 /// the basic properties, methods, and behaviors of a node.
 /// </summary>
-// [MemoryPackable]
 public abstract class Node {
     public string ID { get; }
     public string Name { get; set; }
@@ -22,6 +21,9 @@ public abstract class Node {
         }
     }
 
+    private Node? _parent;
+    public Node? Parent { get => _parent; set => SetParent(value); }
+
     public bool IsDisabled { get; set; }
 
     private ITreeContext? _context;
@@ -34,9 +36,6 @@ public abstract class Node {
             }
         }
     }
-
-    private Node? _parent;
-    public Node? Parent { get => _parent; set => SetParent(value); }
 
     public Node(string id, string name) {
         ID = id;
