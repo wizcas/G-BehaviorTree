@@ -44,23 +44,29 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
 
     public void OnChildExit(INode child) {
         if (child != Child) {
+            Context?.Trace.Add(this, $"skip: child exit");
             BehaviorTree.Logger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
             return;
         }
+        Context?.Trace.Add(this, $"after child exit: {child}");
         AfterChildExit(child);
         TryExit();
     }
     protected abstract void AfterChildExit(INode child);
 
     protected sealed override void DoTick() {
-        if (Child is null) {
+        if (Child is null || Child.IsDisabled) {
+            Context?.Trace.Add(this, $"no current child");
             State = NodeState.Failure;
-            BehaviorTree.Logger.Error("failed for no child is attached", this);
+            BehaviorTree.Logger.Error("failed for no child is available or enabled", this);
             return;
         }
         DoTick(Child);
     }
-    protected virtual void DoTick(INode child) { child.Tick(); }
+    protected virtual void DoTick(INode child) {
+        Context?.Trace.Add(this, $"child tick");
+        child.Tick();
+    }
 }
 
 /// <summary>
@@ -114,7 +120,7 @@ public class SucceederNode : DecoratorNode {
 /// be executed repeatedly for the given times. Node that <c>0</c> times will forbid the child node to run.</para>
 /// </summary>
 public class RepeaterNode : DecoratorNode {
-    private int _currentTimes = 0;
+    private int _currentTimes;
     /// <summary>
     /// How many times to run the child node.
     /// If the value is <c>0</c>, the child node won't run at all.
@@ -136,11 +142,13 @@ public class RepeaterNode : DecoratorNode {
     }
     protected override void DoTick(INode child) {
         if (ShouldStop()) {
+            Context?.Trace.Add(this, "repeat ends on target times");
             State = NodeState.Success;
             BehaviorTree.Logger.Warn($"repeater node not run at all: current times is {_currentTimes}, while the repeat times is {Times}", this);
             return;
         }
         State = NodeState.Running;
+        Context?.Trace.Add(this, $"child tick");
         child.Tick();
     }
 

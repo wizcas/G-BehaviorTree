@@ -53,17 +53,21 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
     protected sealed override void DoTick() {
         INode? child = CurrentChild;
         if (child is null) {
+            Context?.Trace.Add(this, $"no current child");
             State = NodeState.Failure;
             BehaviorTree.Logger.Error($"failed due to no valid child node on index {_currentChildIndex}", this);
             return;
         }
+        Context?.Trace.Add(this, $"child tick");
         child.Tick();
     }
     public void OnChildExit(INode child) {
         if (child != CurrentChild) {
+            Context?.Trace.Add(this, $"skip: child exit");
             BehaviorTree.Logger.Warn($"skip: try to exit child {child} but the current child is {CurrentChild}", child);
             return;
         }
+        Context?.Trace.Add(this, $"after child exit: {child}");
         AfterChildExit(child);
         TryExit();
     }

@@ -31,34 +31,39 @@ public class BehaviorTree {
     }
 
     public void Tick() {
-        Context.NewTrace();
         if (_rootNode is null) {
             Logger.Error("the tree has no root node", null);
         } else {
+            if (RunningNode is null) {
+                Context.Trace.NewPass();
+            }
             (RunningNode ?? _rootNode).Tick();
         }
     }
 
-    public void SetRunningNode(INode node) {
+    public void SetRunningNode(INode? node) {
+        Context.Trace.Add(node, node is null ? "Running node cleared" : $"New runningNode: {node}");
         RunningNode = node;
     }
     public void ExitRunningNode(INode node) {
+        Context.Trace.Add(node, $"exit");
         if (RunningNode != node) {
             Logger.Warn($"skip: try to exit running node {node} but the running node is {RunningNode}", node);
             return;
         }
-        RunningNode = node.Parent;
+        SetRunningNode(node.Parent);
         node.Parent?.OnChildExit(node);
     }
     public void Interrupt() {
         if (RunningNode is null) return;
 
+        Context.Trace.Add(null, $"interrupt");
         INode? node = RunningNode;
         while (node is not null) {
             node.Reset();
             node = node.Parent;
         }
-        RunningNode = null;
+        SetRunningNode(null);
     }
 
     private TreeContext CreateContext() {

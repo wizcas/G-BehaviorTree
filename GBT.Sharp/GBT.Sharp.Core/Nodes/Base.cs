@@ -7,7 +7,16 @@ public abstract class BaseNode : INode {
     public string ID { get; }
     public string Name { get; set; }
 
-    public NodeState State { get; set; }
+    private NodeState _state;
+    public NodeState State {
+        get => _state;
+        set {
+            if (_state != value) {
+                Context?.Trace.Add(this, $"state change: {_state} -> {value}");
+            }
+            _state = value;
+        }
+    }
 
     public bool IsDisabled { get; set; }
 
@@ -35,7 +44,9 @@ public abstract class BaseNode : INode {
     }
     public BaseNode() : this("Unnamed") { }
 
-    public virtual void Initialize() { }
+    public virtual void Initialize() {
+        Context?.Trace.Add(this, "initialize");
+    }
 
     public void Tick() {
         if (Context is null) {
@@ -43,14 +54,15 @@ public abstract class BaseNode : INode {
             return;
         }
         if (IsDisabled) {
+            Context.Trace.Add(this, "skip: disabled");
             return;
         }
         if (State != NodeState.Running) {
-            Context.CurrentTrace.Add(this);
             Initialize();
             Context.Tree.SetRunningNode(this);
         }
         State = NodeState.Running;
+        Context.Trace.Add(this, "tick");
         DoTick();
         TryExit();
     }
@@ -70,14 +82,19 @@ public abstract class BaseNode : INode {
         }
     }
 
-    public virtual void CleanUp() { }
+    public virtual void CleanUp() {
+        Context?.Trace.Add(this, "clean up");
+    }
     public virtual void Reset() {
+        Context?.Trace.Add(this, "reset");
         if (State != NodeState.Unvisited) {
             CleanUp();
         }
         State = NodeState.Unvisited;
     }
-    protected virtual void OnContextUpdated() { }
+    protected virtual void OnContextUpdated() {
+        Context?.Trace.Add(this, "context updated");
+    }
 
     private void SetParent(IParentNode? parent) {
         if (parent == Parent) {
