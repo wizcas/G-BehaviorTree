@@ -3,7 +3,7 @@ using GBT.Sharp.Core.Nodes;
 namespace GBT.Sharp.Core.Diagnostics;
 
 public class Pass {
-    public record struct Footprint(BaseNode? Node, string Content) {
+    public record struct Footprint(Node? Node, string Content) {
         public string NodeName => Node?.Name ?? "<tree>";
         public DateTime Time { get; } = DateTime.Now;
 
@@ -22,7 +22,7 @@ public class Pass {
     public Pass() {
     }
 
-    public Footprint Add(BaseNode? node, string content) {
+    public Footprint Add(Node? node, string content) {
         var fp = new Footprint(node, content);
         _footprints.Push(fp);
         return fp;
@@ -38,7 +38,7 @@ public class Trace {
         _passes.Add(new());
     }
 
-    public void Add(BaseNode? node, string content) {
+    public void Add(Node? node, string content) {
         if (_passes.Count == 0) {
             NewPass();
         }

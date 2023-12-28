@@ -4,10 +4,10 @@
 /// A Decorator Node is a node that can have only one child.
 /// </summary>
 public interface IDecoratorNode : IParentNode {
-    BaseNode? Child { get; }
+    Node? Child { get; }
 }
 
-public abstract class DecoratorNode : BaseNode, IDecoratorNode {
+public abstract class DecoratorNode : Node, IDecoratorNode {
     public DecoratorNode(string id, string name) : base(id, name) {
     }
 
@@ -17,8 +17,8 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
     protected DecoratorNode() {
     }
 
-    public BaseNode? Child { get; private set; }
-    public void AddChild(BaseNode child) {
+    public Node? Child { get; private set; }
+    public void AddChild(Node child) {
         if (child == Child) {
             return;
         }
@@ -32,7 +32,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
         }
     }
 
-    public bool RemoveChild(BaseNode child) {
+    public bool RemoveChild(Node child) {
         if (Child != child) {
             return false;
         }
@@ -42,7 +42,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
         return true;
     }
 
-    public void OnChildExit(BaseNode child) {
+    public void OnChildExit(Node child) {
         if (child != Child) {
             Context?.Trace.Add(this, $"skip: child exit");
             BehaviorTree.Logger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
@@ -51,7 +51,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
         AfterChildExit(child);
         TryExit();
     }
-    protected abstract void AfterChildExit(BaseNode child);
+    protected abstract void AfterChildExit(Node child);
 
     protected sealed override void DoTick() {
         if (Child is null || Child.IsDisabled) {
@@ -62,7 +62,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
         }
         DoTick(Child);
     }
-    protected virtual void DoTick(BaseNode child) {
+    protected virtual void DoTick(Node child) {
         child.Tick();
     }
 }
@@ -81,7 +81,7 @@ public class InverterNode : DecoratorNode {
     public InverterNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(BaseNode child) {
+    protected override void AfterChildExit(Node child) {
         State = child.State switch {
             NodeState.Success => NodeState.Failure,
             NodeState.Failure => NodeState.Success,
@@ -103,7 +103,7 @@ public class SucceederNode : DecoratorNode {
     public SucceederNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(BaseNode child) {
+    protected override void AfterChildExit(Node child) {
         State = NodeState.Success;
     }
 
@@ -138,7 +138,7 @@ public class RepeaterNode : DecoratorNode {
         base.Initialize();
         _currentTimes = 0;
     }
-    protected override void DoTick(BaseNode child) {
+    protected override void DoTick(Node child) {
         if (ShouldStop()) {
             Context?.Trace.Add(this, "repeat ends on target times");
             State = NodeState.Success;
@@ -153,7 +153,7 @@ public class RepeaterNode : DecoratorNode {
         return Times >= 0 && _currentTimes >= Times;
     }
 
-    protected override void AfterChildExit(BaseNode child) {
+    protected override void AfterChildExit(Node child) {
         if (child.State is NodeState.Success or NodeState.Failure) {
             _currentTimes++;
         }
@@ -176,7 +176,7 @@ public class RepeatUntilFailureNode : DecoratorNode {
     public RepeatUntilFailureNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(BaseNode child) {
+    protected override void AfterChildExit(Node child) {
         State = child.State switch {
             NodeState.Success => NodeState.Running,
             NodeState.Failure => NodeState.Success,

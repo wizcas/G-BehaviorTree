@@ -4,8 +4,8 @@
 /// The node controls the flow of execution of its children in a specific way.
 /// </summary>
 public interface ICompositeNode : IParentNode {
-    IEnumerable<BaseNode> Children { get; }
-    BaseNode? CurrentChild { get; }
+    IEnumerable<Node> Children { get; }
+    Node? CurrentChild { get; }
 }
 
 /// <summary>
@@ -13,17 +13,17 @@ public interface ICompositeNode : IParentNode {
 /// With this manner, the children can be accessed by index, which can be convenient for
 /// sequential execution or random access.
 /// </summary>
-public abstract class ListCompositeNode : BaseNode, ICompositeNode {
-    protected List<BaseNode> _children = new();
+public abstract class ListCompositeNode : Node, ICompositeNode {
+    protected List<Node> _children = new();
     protected int _currentChildIndex = -1;
-    public IEnumerable<BaseNode> Children => _children;
-    public BaseNode? CurrentChild {
+    public IEnumerable<Node> Children => _children;
+    public Node? CurrentChild {
         get {
             if (_currentChildIndex < 0 || _currentChildIndex >= _children.Count) {
                 return null;
             }
 
-            BaseNode? child = _children[_currentChildIndex];
+            Node? child = _children[_currentChildIndex];
             if (child.IsDisabled) {
                 // if the current child is disabled, recursively get the next enabled child or quit
                 //_currentChildIndex++;
@@ -36,7 +36,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
             if (value == null || value.IsDisabled) {
                 _currentChildIndex = -1;
             } else {
-                _currentChildIndex = _children.IndexOf((BaseNode)value);
+                _currentChildIndex = _children.IndexOf(value);
             }
         }
     }
@@ -56,7 +56,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         BehaviorTree.Logger.Info("initialized", this);
     }
     protected sealed override void DoTick() {
-        BaseNode? child = CurrentChild;
+        Node? child = CurrentChild;
         if (child is null) {
             Context?.Trace.Add(this, $"no current child");
             State = NodeState.Failure;
@@ -65,7 +65,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         }
         child.Tick();
     }
-    public void OnChildExit(BaseNode child) {
+    public void OnChildExit(Node child) {
         if (child != CurrentChild) {
             Context?.Trace.Add(this, $"skip: child exit");
             BehaviorTree.Logger.Warn($"skip: try to exit child {child} but the current child is {CurrentChild}", child);
@@ -74,14 +74,14 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         AfterChildExit(child);
         TryExit();
     }
-    protected abstract void AfterChildExit(BaseNode child);
+    protected abstract void AfterChildExit(Node child);
     protected override void OnContextChanged() {
         base.OnContextChanged();
         if (State == NodeState.Running) {
             BehaviorTree.Logger.Info($"running node is reset because context is updated", this);
             Reset();
         }
-        foreach (BaseNode child in _children) {
+        foreach (Node child in _children) {
             child.Context = Context;
         }
     }
@@ -90,7 +90,7 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         _currentChildIndex = 0;
     }
 
-    public void AddChild(BaseNode child) {
+    public void AddChild(Node child) {
         if (!_children.Contains(child)) {
             _children.Add(child);
             child.Context = Context;
@@ -101,16 +101,16 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
         }
     }
 
-    public bool RemoveChild(BaseNode child) {
+    public bool RemoveChild(Node child) {
         var removed = _children.Remove(child);
         if (removed) {
             child.Context = null;
         }
         return removed;
     }
-    protected BaseNode? PeekNextChild() {
+    protected Node? PeekNextChild() {
         var nextIndex = _currentChildIndex + 1;
-        BaseNode? nextChild = null;
+        Node? nextChild = null;
         while (nextIndex < _children.Count && (nextChild = _children[nextIndex]).IsDisabled) {
             nextIndex++;
         };
@@ -133,7 +133,7 @@ public class SequenceNode : ListCompositeNode {
     public SequenceNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(BaseNode child) {
+    protected override void AfterChildExit(Node child) {
         switch (child.State) {
             case NodeState.Running:
                 State = NodeState.Running;
@@ -166,7 +166,7 @@ public class SelectorNode : ListCompositeNode {
     public SelectorNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(BaseNode child) {
+    protected override void AfterChildExit(Node child) {
         switch (child.State) {
             case NodeState.Running:
                 State = NodeState.Running;

@@ -7,9 +7,9 @@ public class BehaviorTree {
 
 
     private ITreeContext _context;
-    private BaseNode? _rootNode;
+    private Node? _rootNode;
 
-    public BaseNode? RunningNode { get; private set; }
+    public Node? RunningNode { get; private set; }
 
     public ITreeContext Context {
         get => _context;
@@ -25,7 +25,7 @@ public class BehaviorTree {
         _context = context ?? CreateContext();
     }
 
-    public void SetRootNode(BaseNode rootNode) {
+    public void SetRootNode(Node rootNode) {
         _rootNode = rootNode;
         _rootNode.Context = _context;
     }
@@ -41,11 +41,11 @@ public class BehaviorTree {
         }
     }
 
-    public void SetRunningNode(BaseNode? node) {
+    public void SetRunningNode(Node? node) {
         Context.Trace.Add(node, node is null ? "Running node cleared" : $"becomes running node");
         RunningNode = node;
     }
-    public void ExitRunningNode(BaseNode node) {
+    public void ExitRunningNode(Node node) {
         Context.Trace.Add(node, $"exit");
         if (RunningNode != node) {
             Logger.Warn($"skip: try to exit running node {node} but the running node is {RunningNode}", node);
@@ -58,7 +58,7 @@ public class BehaviorTree {
         if (RunningNode is null) return;
 
         Context.Trace.Add(null, $"interrupt");
-        BaseNode? node = RunningNode;
+        Node? node = RunningNode;
         while (node is not null) {
             node.Reset();
             node = node.Parent;

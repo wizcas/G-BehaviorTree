@@ -2,8 +2,12 @@
 
 namespace GBT.Sharp.Core.Nodes;
 
+/// <summary>
+/// The base class of all Behavior Tree Nodes, which defines
+/// the basic properties, methods, and behaviors of a node.
+/// </summary>
 // [MemoryPackable]
-public abstract class BaseNode {
+public abstract class Node {
     public string ID { get; }
     public string Name { get; set; }
 
@@ -31,18 +35,18 @@ public abstract class BaseNode {
         }
     }
 
-    private BaseNode? _parent;
-    public BaseNode? Parent { get => _parent; set => SetParent(value); }
+    private Node? _parent;
+    public Node? Parent { get => _parent; set => SetParent(value); }
 
-    public BaseNode(string id, string name) {
+    public Node(string id, string name) {
         ID = id;
         Name = name;
         Reset();
     }
-    public BaseNode(string name) : this(Nanoid.Generate(), name) {
+    public Node(string name) : this(Nanoid.Generate(), name) {
         ID = Nanoid.Generate();
     }
-    public BaseNode() : this("Unnamed") { }
+    public Node() : this("Unnamed") { }
 
     /// <summary>
     /// Set the node ready for running.
@@ -108,7 +112,7 @@ public abstract class BaseNode {
     protected virtual void OnContextChanged() {
     }
 
-    private void SetParent(BaseNode? parent) {
+    private void SetParent(Node? parent) {
         if (parent == Parent) {
             return;
         }
