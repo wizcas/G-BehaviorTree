@@ -2,7 +2,7 @@ using GBT.Sharp.Core.Nodes;
 
 namespace GBT.Sharp.Core.Diagnostics;
 
-public readonly struct Pass {
+public class Pass {
     public record struct Footprint(INode? Node, string Content) {
         public DateTime Time { get; } = DateTime.Now;
     }
