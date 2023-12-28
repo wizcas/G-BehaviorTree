@@ -132,34 +132,37 @@ public abstract class Node {
         return $"{Name} ({ID}/{GetType().Name})";
     }
 
-    public void Save(List<SaveData> savedNodes) {
-        savedNodes.Add(GetSaveData());
+    public void Save(List<SavedData> savedNodes) {
+        savedNodes.Add(WriteSavedData());
         if (this is IParentNode parent) {
             foreach (Node child in parent.Children) {
                 child.Save(savedNodes);
             }
         }
     }
-
-    protected virtual SaveData GetSaveData() {
-        return SaveData.FromNode(this);
+    protected virtual SavedData WriteSavedData() {
+        return SavedData.FromNode(this);
     }
-    protected virtual void LoadSaveData(SaveData save) {
+    protected virtual void ReadSaveData(SavedData save) {
         IsDisabled = save.IsDisabled;
     }
 
     [MessagePackObject]
-    public record SaveData(Type NodeType, string ID, string Name, string? ParentID, bool IsDisabled) {
+    public record SavedData(Type NodeType, string ID, string Name, string? ParentID, bool IsDisabled) {
         public Dictionary<string, object?> Data { get; } = new();
-        public static SaveData FromNode(Node node) {
+        public static SavedData FromNode(Node node) {
             return new(node.GetType(), node.ID, node.Name, node.Parent?.ID, node.IsDisabled);
         }
         public Node LoadNode(Dictionary<string, Node> loadedNodes) {
             var node = (Node)Activator.CreateInstance(NodeType, new object[] { ID, Name })!;
-            node.LoadSaveData(this);
+            node.ReadSaveData(this);
             loadedNodes.Add(ID, node);
-            if (ParentID is not null && loadedNodes.TryGetValue(ParentID, out Node? parent) && parent is IParentNode parentNode) {
-                node.Parent = parent;
+            if (!string.IsNullOrEmpty(ParentID)) {
+                if (loadedNodes.TryGetValue(ParentID, out Node? parent) && parent is IParentNode) {
+                    node.Parent = parent;
+                } else {
+                    BehaviorTree.Logger.Warn($"failed binding saved parent - parent node not loaded yet or invalid", node);
+                }
             }
             return node;
         }

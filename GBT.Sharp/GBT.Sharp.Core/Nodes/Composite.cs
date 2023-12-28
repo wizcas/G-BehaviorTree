@@ -114,8 +114,8 @@ public abstract class ListCompositeNode : Node, ICompositeNode {
         return nextIndex >= _children.Count ? null : nextChild;
     }
 
-    protected override void LoadSaveData(SaveData save) {
-        base.LoadSaveData(save);
+    protected override void ReadSaveData(SavedData save) {
+        base.ReadSaveData(save);
         if (save.Data.TryGetValue(nameof(Children), out var children)) {
             if (children is null) {
                 BehaviorTree.Logger.Warn($"failed to load children from save data due to null data", this);

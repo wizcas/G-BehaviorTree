@@ -56,7 +56,7 @@ public class BaseNodeTests {
         var root = new SequenceNode("root");
         var child1 = new CallbackNode("child 1") { Parent = root };
         var child2 = new CallbackNode("child 2") { Parent = root };
-        List<Node.SaveData> saves = [];
+        List<Node.SavedData> saves = [];
         // Save
         root.Save(saves);
         Assert.Equal(3, saves.Count);
