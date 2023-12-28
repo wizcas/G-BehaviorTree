@@ -9,8 +9,6 @@ public class BehaviorTree {
     private ITreeContext _context;
     private Node? _rootNode;
 
-    public Node? RunningNode { get; private set; }
-
     public ITreeContext Context {
         get => _context;
         set {
@@ -34,36 +32,23 @@ public class BehaviorTree {
         if (_rootNode is null) {
             throw new InvalidOperationException("the tree has no root node");
         } else {
-            if (RunningNode is null) {
+            if (Context.RunningNode is null) {
                 Context.Trace.NewPass();
             }
-            (RunningNode ?? _rootNode).Tick();
+            (Context.RunningNode ?? _rootNode).Tick();
         }
     }
 
-    public void SetRunningNode(Node? node) {
-        Context.Trace.Add(node, node is null ? "Running node cleared" : $"becomes running node");
-        RunningNode = node;
-    }
-    public void ExitRunningNode(Node node) {
-        Context.Trace.Add(node, $"exit");
-        if (RunningNode != node) {
-            Logger.Warn($"skip: try to exit running node {node} but the running node is {RunningNode}", node);
-            return;
-        }
-        SetRunningNode(node.Parent);
-        (node.Parent as IParentNode)?.OnChildExit(node);
-    }
     public void Interrupt() {
-        if (RunningNode is null) return;
+        if (Context.RunningNode is null) return;
 
         Context.Trace.Add(null, $"interrupt");
-        Node? node = RunningNode;
+        Node? node = Context.RunningNode;
         while (node is not null) {
             node.Reset();
             node = node.Parent;
         }
-        SetRunningNode(null);
+        Context.EnterNode(null);
     }
 
     private TreeContext CreateContext() {

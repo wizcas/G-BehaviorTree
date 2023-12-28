@@ -17,7 +17,7 @@ public class BehaviorTreeTests {
         _tree.SetRootNode(rootNode);
         _tree.Tick();
         Assert.Equal(1, count);
-        Assert.Equal(rootNode, _tree.RunningNode);
+        Assert.Equal(rootNode, _tree.Context.RunningNode);
     }
     [Fact]
     public void ShouldCacheRunningNode() {
@@ -30,22 +30,22 @@ public class BehaviorTreeTests {
 
         for (var i = 0; i < 3; i++) {
             _tree.Tick();
-            Assert.Equal(child1, _tree.RunningNode);
+            Assert.Equal(child1, _tree.Context.RunningNode);
         }
 
         child1.OnTick = (node) => node.State = NodeState.Success;
         _tree.Tick();
-        Assert.Equal(rootNode, _tree.RunningNode);
+        Assert.Equal(rootNode, _tree.Context.RunningNode);
 
         for (var i = 0; i < 3; i++) {
             _tree.Tick();
-            Assert.Equal(child2, _tree.RunningNode);
+            Assert.Equal(child2, _tree.Context.RunningNode);
         }
         child2.OnTick = (node) => node.State = NodeState.Success;
         _tree.Tick();
         // Since the last child is done, the tree exits running states RECURSIVELY
         // to the root node, leaving running nodes in a null state.
-        Assert.Null(_tree.RunningNode);
+        Assert.Null(_tree.Context.RunningNode);
     }
     [Fact]
     public void ShouldInterruptRunningState() {
@@ -58,9 +58,9 @@ public class BehaviorTreeTests {
         child.OnCleanUp = (node) => isChildCleanedUp = true;
 
         _tree.Tick();
-        Assert.Equal(child, _tree.RunningNode);
+        Assert.Equal(child, _tree.Context.RunningNode);
         _tree.Interrupt();
-        Assert.Null(_tree.RunningNode);
+        Assert.Null(_tree.Context.RunningNode);
         Assert.Equal(NodeState.Unvisited, rootNode.State);
         Assert.Equal(NodeState.Unvisited, child.State);
         Assert.True(isChildCleanedUp);

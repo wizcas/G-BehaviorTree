@@ -69,7 +69,7 @@ public abstract class Node {
         }
         if (State != NodeState.Running) {
             Initialize();
-            Context.Tree.SetRunningNode(this);
+            Context.EnterNode(this);
         }
         State = NodeState.Running;
         Context.Trace.Add(this, "tick");
@@ -87,7 +87,7 @@ public abstract class Node {
             CleanUp();
 
             if (State != NodeState.Unvisited) {
-                Context?.Tree.ExitRunningNode(this);
+                Context?.ExitNode(this);
             }
         }
     }
