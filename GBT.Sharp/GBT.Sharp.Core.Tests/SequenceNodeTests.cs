@@ -43,7 +43,7 @@ public class SequenceNodeTests {
         Assert.Equal(_child1, _node.CurrentChild);
         _node.Tick();
         Assert.Equal(NodeState.Failure, _node.State);
-        Assert.Equal(_child1, _node.CurrentChild);
+        Assert.Null(_node.CurrentChild);
     }
     [Fact]
     public void ShouldKeepRunningIfChildIsRunning() {
@@ -56,5 +56,17 @@ public class SequenceNodeTests {
             Assert.Equal(NodeState.Running, _node.State);
             Assert.Equal(_child1, _node.CurrentChild);
         }
+    }
+    [Fact]
+    public void ShouldSkipDisabledNode() {
+        _child1.IsDisabled = true;
+        _child2.OnTick = (node) => node.State = NodeState.Success;
+        _node.Initialize();
+        Assert.Equal(_child2, _node.CurrentChild);
+        _node.Tick();
+        Assert.Equal(NodeState.Success, _node.State);
+        Assert.Null(_node.CurrentChild);
+        Assert.Equivalent(new[] { _child2.ID, "<tree>" },
+                          _tree.Context.Trace.Passes.FirstOrDefault()?.FootprintsByNodes.Keys);
     }
 }

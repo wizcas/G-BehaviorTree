@@ -24,7 +24,7 @@ public class BaseNodeTests {
         Assert.Null(_t.Object.Parent);
     }
     [Fact]
-    public void ShouldNotRunIfNotEnabled() {
+    public void ShouldNotRunIfDisabled() {
         _t.Object.IsDisabled = true;
         _t.Object.Tick();
         Assert.Equal(NodeState.Unvisited, _t.Object.State);

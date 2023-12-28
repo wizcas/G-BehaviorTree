@@ -1,8 +1,9 @@
-﻿using NanoidDotNet;
+﻿using MemoryPack;
+using NanoidDotNet;
 
 namespace GBT.Sharp.Core.Nodes;
 
-
+// [MemoryPackable]
 public abstract class BaseNode : INode {
     public string ID { get; }
     public string Name { get; set; }
@@ -26,7 +27,7 @@ public abstract class BaseNode : INode {
         set {
             if (_context != value) {
                 _context = value;
-                OnContextUpdated();
+                OnContextChanged();
             }
         }
     }
@@ -92,7 +93,7 @@ public abstract class BaseNode : INode {
         }
         State = NodeState.Unvisited;
     }
-    protected virtual void OnContextUpdated() {
+    protected virtual void OnContextChanged() {
     }
 
     private void SetParent(IParentNode? parent) {
