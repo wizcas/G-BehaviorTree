@@ -1,10 +1,9 @@
-﻿using MemoryPack;
-using NanoidDotNet;
+﻿using NanoidDotNet;
 
 namespace GBT.Sharp.Core.Nodes;
 
 // [MemoryPackable]
-public abstract class BaseNode : INode {
+public abstract class BaseNode {
     public string ID { get; }
     public string Name { get; set; }
 
@@ -32,8 +31,8 @@ public abstract class BaseNode : INode {
         }
     }
 
-    private IParentNode? _parent;
-    public IParentNode? Parent { get => _parent; set => SetParent(value); }
+    private BaseNode? _parent;
+    public BaseNode? Parent { get => _parent; set => SetParent(value); }
 
     public BaseNode(string id, string name) {
         ID = id;
@@ -45,10 +44,17 @@ public abstract class BaseNode : INode {
     }
     public BaseNode() : this("Unnamed") { }
 
+    /// <summary>
+    /// Set the node ready for running.
+    /// This method is for internal purpose.
+    /// </summary>
     public virtual void Initialize() {
         Context?.Trace.Add(this, "initialize");
     }
 
+    /// <summary>
+    /// Called everytime the node is executed.
+    /// </summary>
     public void Tick() {
         if (Context is null) {
             BehaviorTree.Logger.Error("this node has no context", this);
@@ -82,10 +88,16 @@ public abstract class BaseNode : INode {
             }
         }
     }
-
+    /// <summary>
+    /// Clean up any intermediate state or data that was set
+    /// by running this node.
+    /// </summary>
     public virtual void CleanUp() {
         Context?.Trace.Add(this, "clean up");
     }
+    /// <summary>
+    /// Reset this node to its initial state and data.
+    /// </summary>
     public virtual void Reset() {
         Context?.Trace.Add(this, "reset");
         if (State != NodeState.Unvisited) {
@@ -96,16 +108,20 @@ public abstract class BaseNode : INode {
     protected virtual void OnContextChanged() {
     }
 
-    private void SetParent(IParentNode? parent) {
+    private void SetParent(BaseNode? parent) {
         if (parent == Parent) {
             return;
+        }
+
+        if (parent is not null and not IParentNode) {
+            throw new ArgumentException("only IParentNode can be set as parent", nameof(parent));
         }
 
         if (Parent is not null and IParentNode oldParent) {
             oldParent.RemoveChild(this);
         }
         _parent = parent;
-        parent?.AddChild(this);
+        (parent as IParentNode)?.AddChild(this);
     }
 
     public override string ToString() {

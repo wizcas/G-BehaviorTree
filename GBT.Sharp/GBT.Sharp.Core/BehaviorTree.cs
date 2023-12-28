@@ -7,9 +7,9 @@ public class BehaviorTree {
 
 
     private ITreeContext _context;
-    private INode? _rootNode;
+    private BaseNode? _rootNode;
 
-    public INode? RunningNode { get; private set; }
+    public BaseNode? RunningNode { get; private set; }
 
     public ITreeContext Context {
         get => _context;
@@ -25,7 +25,7 @@ public class BehaviorTree {
         _context = context ?? CreateContext();
     }
 
-    public void SetRootNode(INode rootNode) {
+    public void SetRootNode(BaseNode rootNode) {
         _rootNode = rootNode;
         _rootNode.Context = _context;
     }
@@ -41,24 +41,24 @@ public class BehaviorTree {
         }
     }
 
-    public void SetRunningNode(INode? node) {
+    public void SetRunningNode(BaseNode? node) {
         Context.Trace.Add(node, node is null ? "Running node cleared" : $"becomes running node");
         RunningNode = node;
     }
-    public void ExitRunningNode(INode node) {
+    public void ExitRunningNode(BaseNode node) {
         Context.Trace.Add(node, $"exit");
         if (RunningNode != node) {
             Logger.Warn($"skip: try to exit running node {node} but the running node is {RunningNode}", node);
             return;
         }
         SetRunningNode(node.Parent);
-        node.Parent?.OnChildExit(node);
+        (node.Parent as IParentNode)?.OnChildExit(node);
     }
     public void Interrupt() {
         if (RunningNode is null) return;
 
         Context.Trace.Add(null, $"interrupt");
-        INode? node = RunningNode;
+        BaseNode? node = RunningNode;
         while (node is not null) {
             node.Reset();
             node = node.Parent;
