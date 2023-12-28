@@ -58,7 +58,6 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
             BehaviorTree.Logger.Error($"failed due to no valid child node on index {_currentChildIndex}", this);
             return;
         }
-        Context?.Trace.Add(this, $"child tick");
         child.Tick();
     }
     public void OnChildExit(INode child) {
@@ -67,7 +66,6 @@ public abstract class ListCompositeNode : BaseNode, ICompositeNode {
             BehaviorTree.Logger.Warn($"skip: try to exit child {child} but the current child is {CurrentChild}", child);
             return;
         }
-        Context?.Trace.Add(this, $"after child exit: {child}");
         AfterChildExit(child);
         TryExit();
     }

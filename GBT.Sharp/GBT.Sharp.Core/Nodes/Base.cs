@@ -93,7 +93,6 @@ public abstract class BaseNode : INode {
         State = NodeState.Unvisited;
     }
     protected virtual void OnContextUpdated() {
-        Context?.Trace.Add(this, "context updated");
     }
 
     private void SetParent(IParentNode? parent) {

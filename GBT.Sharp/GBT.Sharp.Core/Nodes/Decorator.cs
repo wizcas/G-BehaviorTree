@@ -48,7 +48,6 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
             BehaviorTree.Logger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
             return;
         }
-        Context?.Trace.Add(this, $"after child exit: {child}");
         AfterChildExit(child);
         TryExit();
     }
@@ -64,7 +63,6 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
         DoTick(Child);
     }
     protected virtual void DoTick(INode child) {
-        Context?.Trace.Add(this, $"child tick");
         child.Tick();
     }
 }
@@ -148,7 +146,6 @@ public class RepeaterNode : DecoratorNode {
             return;
         }
         State = NodeState.Running;
-        Context?.Trace.Add(this, $"child tick");
         child.Tick();
     }
 

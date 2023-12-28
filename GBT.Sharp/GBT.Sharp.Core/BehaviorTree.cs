@@ -32,7 +32,7 @@ public class BehaviorTree {
 
     public void Tick() {
         if (_rootNode is null) {
-            Logger.Error("the tree has no root node", null);
+            throw new InvalidOperationException("the tree has no root node");
         } else {
             if (RunningNode is null) {
                 Context.Trace.NewPass();
@@ -42,7 +42,7 @@ public class BehaviorTree {
     }
 
     public void SetRunningNode(INode? node) {
-        Context.Trace.Add(node, node is null ? "Running node cleared" : $"New runningNode: {node}");
+        Context.Trace.Add(node, node is null ? "Running node cleared" : $"becomes running node");
         RunningNode = node;
     }
     public void ExitRunningNode(INode node) {
