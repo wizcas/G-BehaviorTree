@@ -43,10 +43,10 @@ public abstract class Node {
         Name = name;
         Reset();
     }
-    public Node(string name) : this(Nanoid.Generate(), name) {
-        ID = Nanoid.Generate();
+    public Node(string name) : this(Nanoid.Generate(), name) { }
+    public Node() : this("") {
+        Name = $"New {GetType().Name}";
     }
-    public Node() : this("Unnamed") { }
 
     /// <summary>
     /// Set the node ready for running.
