@@ -8,18 +8,14 @@ public class NodeSavedDataTests(ITestOutputHelper output) {
     [Theory]
     [ClassData(typeof(NodeHierarchyGeneartor))]
     public void ShouldSaveLoadHierarchy(NodeHierarchyGeneartor.TestCase testCase) {
-        // var root = new SequenceNode("root");
-        // var child1 = new CallbackNode("child 1") { Parent = root };
-        // var child2 = new CallbackNode("child 2") { Parent = root };
-        // var testedNodes = new Node[] { root, child1, child2 };
         var testedNodes = testCase.Nodes;
         // Save
-        List<Node.SavedData> saves = [];
+        List<NodeData> saves = [];
         testCase.Root.Save(saves);
         Assert.Equal(testedNodes.Length, saves.Count);
         var index = 0;
         foreach (Node node in testedNodes) {
-            Node.SavedData save = saves[index++];
+            NodeData save = saves[index++];
             // Assert basic data
             Assert.Equivalent(new {
                 NodeType = node.GetType(),
