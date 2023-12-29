@@ -25,7 +25,7 @@ public class SequenceNodeTests {
 
     private void AssertRootExitTimes(int times) {
         Assert.Equal(times,
-            _tree.Context.Trace.Passes.FirstOrDefault()?.FootprintsByNodes[_root.ID]
+            _tree.Runtime.Trace.Passes.FirstOrDefault()?.FootprintsByNodes[_root.ID]
             .Where(footprint => footprint.Content == "exit")
             .Count());
     }
@@ -71,7 +71,7 @@ public class SequenceNodeTests {
         Assert.Equal(NodeState.Success, _root.State);
         Assert.Null(_root.Context.CurrentChild);
         Assert.Equivalent(new[] { _child2.ID, "<tree>" },
-                          _tree.Context.Trace.Passes.FirstOrDefault()?.FootprintsByNodes.Keys);
+                          _tree.Runtime.Trace.Passes.FirstOrDefault()?.FootprintsByNodes.Keys);
         AssertRootExitTimes(1);
     }
 }

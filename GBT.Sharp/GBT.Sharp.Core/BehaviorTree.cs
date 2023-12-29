@@ -1,6 +1,5 @@
 ﻿using GBT.Sharp.Core.Nodes;
 using MessagePack;
-using MessagePack.Resolvers;
 using NanoidDotNet;
 using System.Buffers;
 
@@ -11,58 +10,68 @@ public class BehaviorTree {
 
     public string ID { get; private set; } = Nanoid.Generate();
 
-    private TreeRuntime _context;
+    private TreeRuntime _runtime;
     private Node? _rootNode;
 
-    public TreeRuntime Context {
-        get => _context;
+    public TreeRuntime Runtime {
+        get => _runtime;
         set {
-            if (_context != value) {
-                _context = value;
-                OnContextChanged();
+            if (_runtime != value) {
+                _runtime = value;
+                OnRuntimeChanged();
             }
         }
     }
 
-    public BehaviorTree(TreeRuntime? context = null) {
-        _context = context ?? CreateContext();
+    public BehaviorTree(TreeRuntime? runtime = null) {
+        _runtime = runtime ?? CreateRuntime();
     }
 
     public void SetRootNode(Node rootNode) {
         _rootNode = rootNode;
-        _rootNode.Runtime = _context;
+        _rootNode.Runtime = _runtime;
     }
 
     public void Tick() {
         if (_rootNode is null) {
             throw new InvalidOperationException("the tree has no root node");
         } else {
-            if (Context.RunningNode is null) {
-                Context.Trace.NewPass();
+            if (Runtime.RunningNode is null) {
+                Runtime.Trace.NewPass();
             }
-            (Context.RunningNode ?? _rootNode).Tick();
+            (Runtime.RunningNode ?? _rootNode).Tick();
         }
     }
 
     public void Interrupt() {
-        if (Context.RunningNode is null) {
+        if (Runtime.RunningNode is null) {
             return;
         }
 
-        Context.Trace.Add(null, $"interrupt");
-        Node? node = Context.RunningNode;
+        Runtime.Trace.Add(null, $"interrupt");
+        Node? node = Runtime.RunningNode;
         while (node is not null) {
             node.Reset();
             node = node.Parent;
         }
-        Context.RunningNode = null;
+        Runtime.RunningNode = null;
     }
 
-    private TreeRuntime CreateContext() {
+    public IEnumerable<Node> Flatten() {
+        return _rootNode?.Flatten() ?? Enumerable.Empty<Node>();
+    }
+    public Node? FindNode(string id) {
+        return Flatten().FirstOrDefault(n => n.ID == id);
+    }
+    public Node? FindNodeByName(string name) {
+        return Flatten().FirstOrDefault(n => n.Name == name);
+    }
+
+    private TreeRuntime CreateRuntime() {
         return new TreeRuntime(this);
     }
 
-    private void OnContextChanged() {
+    private void OnRuntimeChanged() {
         Interrupt();
     }
 
@@ -87,7 +96,6 @@ public class BehaviorTree {
         }
     }
 
-
     public void Save(IBufferWriter<byte> writer) {
         MessagePackSerializer.Serialize(writer, WriteSavedData());
     }
@@ -99,8 +107,5 @@ public class BehaviorTree {
     }
     public void Load(ReadOnlyMemory<byte> buffer) {
         ReadSavedData(MessagePackSerializer.Deserialize<TreeData>(buffer));
-    }
-    public IEnumerable<Node> Flatten() {
-        return _rootNode?.Flatten() ?? Enumerable.Empty<Node>();
     }
 }
