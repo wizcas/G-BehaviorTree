@@ -5,10 +5,13 @@ using Xunit.Abstractions;
 namespace GBT.Sharp.Core.Tests;
 
 public class NodeSavedDataTests(ITestOutputHelper output) {
+    private readonly ITestOutputHelper output = output ?? throw new ArgumentNullException(nameof(output));
+    private readonly NodeLoader _loader = new();
+
     [Theory]
     [ClassData(typeof(NodeHierarchyGeneartor))]
     public void ShouldSaveLoadHierarchy(NodeHierarchyGeneartor.TestCase testCase) {
-        var testedNodes = testCase.Nodes;
+        Node[] testedNodes = testCase.Nodes;
         // Save
         List<NodeData> saves = [];
         testCase.Root.Save(saves);
@@ -29,8 +32,7 @@ public class NodeSavedDataTests(ITestOutputHelper output) {
             }
         }
         // Load
-        Dictionary<string, Node> cache = [];
-        Node[] loads = saves.Select(save => save.LoadNode(cache)).ToArray();
+        Node[] loads = saves.Select(_loader.Load).ToArray();
         index = 0;
         foreach (Node node in testedNodes) {
             Node load = loads[index++];
@@ -60,7 +62,7 @@ public class NodeSavedDataTests(ITestOutputHelper output) {
     public void ShouldSaveRepeatTimes() {
         var node = new RepeaterNode("rep") { Times = 3 };
         NodeData saved = node.Save(null)[0];
-        RepeaterNode loaded = saved.LoadNode<RepeaterNode>([]);
+        RepeaterNode loaded = _loader.Load<RepeaterNode>(saved);
         Assert.Equal(3, loaded.Times);
     }
 }

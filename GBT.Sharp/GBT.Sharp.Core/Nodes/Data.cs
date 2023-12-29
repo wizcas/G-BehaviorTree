@@ -32,3 +32,18 @@ public sealed record NodeData(Type NodeType, string ID, string Name, string? Par
         return (TNode)LoadNode(loadedNodes);
     }
 }
+
+public class NodeLoader {
+    private readonly Dictionary<string, Node> _nodeCache = new();
+
+    public void Reset() {
+        _nodeCache.Clear();
+    }
+
+    public TNode Load<TNode>(NodeData data) where TNode : Node {
+        return data.LoadNode<TNode>(_nodeCache);
+    }
+    public Node Load(NodeData data) {
+        return data.LoadNode(_nodeCache);
+    }
+}
