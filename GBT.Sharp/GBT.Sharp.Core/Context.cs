@@ -1,5 +1,6 @@
 ﻿using GBT.Sharp.Core.Diagnostics;
 using GBT.Sharp.Core.Nodes;
+using MessagePack;
 using System.Buffers;
 
 namespace GBT.Sharp.Core;
@@ -47,5 +48,11 @@ public class TreeRuntime {
     public Task Save(IBufferWriter<byte> writer) {
         // TODO
         return Task.CompletedTask;
+    }
+
+    public record struct Data(string TreeID, string? RunningNodeID, Dictionary<string, NodeContext> NodeContexts) {
+        public static Data FromRuntime(TreeRuntime runtime) {
+            return new(runtime.Tree.ID, runtime.RunningNode?.ID, runtime.NodeContexts);
+        }
     }
 }

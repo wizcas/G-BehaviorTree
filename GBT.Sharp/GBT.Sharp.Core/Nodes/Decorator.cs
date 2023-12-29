@@ -198,9 +198,9 @@ public class RepeaterNode : DecoratorNode<RepeaterNode> {
         data.Extra[nameof(Times)] = Times;
         return data;
     }
-    internal override void ReadSaveData(NodeData save) {
-        base.ReadSaveData(save);
-        if (save.Extra.TryGetValue(nameof(Times), out var times)
+    internal override void ReadSaveData(NodeData data) {
+        base.ReadSaveData(data);
+        if (data.Extra.TryGetValue(nameof(Times), out var times)
             && times is not null) {
             Times = Convert.ToInt32(times, CultureInfo.InvariantCulture);
         }

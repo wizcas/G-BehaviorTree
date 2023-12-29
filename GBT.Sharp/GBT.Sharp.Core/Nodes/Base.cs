@@ -177,8 +177,8 @@ public abstract class Node {
     internal virtual NodeData WriteSavedData() {
         return NodeData.FromNode(this);
     }
-    internal virtual void ReadSaveData(NodeData save) {
-        IsDisabled = save.IsDisabled;
+    internal virtual void ReadSaveData(NodeData data) {
+        IsDisabled = data.IsDisabled;
     }
 
 }

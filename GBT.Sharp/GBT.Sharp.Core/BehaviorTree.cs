@@ -1,5 +1,7 @@
 ﻿using GBT.Sharp.Core.Nodes;
 using MessagePack;
+using MessagePack.Resolvers;
+using NanoidDotNet;
 using System.Buffers;
 
 namespace GBT.Sharp.Core;
@@ -7,6 +9,7 @@ namespace GBT.Sharp.Core;
 public class BehaviorTree {
     public static TreeLogger Logger { get; } = new TreeLogger();
 
+    public string ID { get; private set; } = Nanoid.Generate();
 
     private TreeRuntime _context;
     private Node? _rootNode;
@@ -65,10 +68,12 @@ public class BehaviorTree {
 
     private TreeData WriteSavedData() {
         return new TreeData(
+            ID: ID,
             Nodes: _rootNode?.Save(null).ToArray() ?? Array.Empty<NodeData>(),
             RootID: _rootNode?.ID ?? string.Empty);
     }
     private void ReadSavedData(TreeData data) {
+        ID = data.ID;
         if (data.Nodes.Length > 0) {
             var nodeLoader = new NodeLoader();
             Dictionary<string, Node> nodes = nodeLoader.LoadAll(data.Nodes);
@@ -81,6 +86,7 @@ public class BehaviorTree {
             }
         }
     }
+
 
     public void Save(IBufferWriter<byte> writer) {
         MessagePackSerializer.Serialize(writer, WriteSavedData());

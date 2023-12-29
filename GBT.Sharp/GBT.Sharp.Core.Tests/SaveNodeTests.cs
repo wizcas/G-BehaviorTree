@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace GBT.Sharp.Core.Tests;
 
-public class NodeSavedDataTests(ITestOutputHelper output) {
+public class SaveNodeTests(ITestOutputHelper output) {
     private readonly ITestOutputHelper output = output ?? throw new ArgumentNullException(nameof(output));
     private readonly NodeLoader _loader = new();
 

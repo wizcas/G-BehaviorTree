@@ -3,9 +3,10 @@ using MessagePack;
 namespace GBT.Sharp.Core.Nodes;
 
 [MessagePackObject(true)]
-public record TreeData(
-     NodeData[] Nodes,
-     string? RootID);
+public record struct TreeData(
+    string ID,
+    NodeData[] Nodes,
+    string? RootID);
 
 /// <summary>
 /// Persistable data for a node.
@@ -20,7 +21,7 @@ public record struct NodeData(
     /// <summary>
     /// Arbitrary data that can be saved and loaded.
     /// </summary>
-    public Dictionary<string, object?> Extra { get; } = new();
+    public Dictionary<string, object?> Extra { get; set; } = new();
 
     public static NodeData FromNode(Node node) {
         return new(node.GetType(), node.ID, node.Name, node.Parent?.ID, node.IsDisabled);

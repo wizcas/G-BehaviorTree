@@ -10,7 +10,8 @@ public class SaveTreeTests(ITestOutputHelper output) {
     public void ShouldSaveLoadTree() {
         BehaviorTree tree = new();
         tree.SetRootNode(
-            new RepeaterNode("rep") { Times = 8 }.AddChild(
+            new RepeaterNode("rep") { Times = 8 }
+            .AddChild(
                 new SequenceNode("seq").AddChildren(
                     new SucceederNode("suc").AddChild(new CallbackNode("c1")),
                     new CallbackNode("c2"),
@@ -20,7 +21,8 @@ public class SaveTreeTests(ITestOutputHelper output) {
                             new CallbackNode("c4"))
                     )
                 )
-            ));
+            )
+        );
         ArrayBufferWriter<byte> buffer = new();
         tree.Save(buffer);
         ReadOnlyMemory<byte> bin = buffer.WrittenMemory;
@@ -31,11 +33,12 @@ public class SaveTreeTests(ITestOutputHelper output) {
         BehaviorTree tree2 = new();
         tree2.Load(bin);
 
+        Assert.Equal(tree.ID, tree2.ID);
         Assert.Equivalent(
             tree.Flatten().Select(node => node.ID),
             tree2.Flatten().Select(node => node.ID));
         // Test extra data
-        Assert.Equal(8, tree.Flatten()
+        Assert.Equal(8, tree2.Flatten()
                             .FirstOrDefault(n => n.Name == "rep")?
                             .Cast<RepeaterNode>().Times);
     }
