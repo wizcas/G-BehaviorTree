@@ -36,3 +36,7 @@ public interface IParentNode {
     /// Cast this instance to <see cref="Node"/> type.
     T Cast<T>() where T : Node;
 }
+public interface IParentNode<TNode> : IParentNode where TNode : Node {
+    new TNode AddChild(Node child);
+    new TNode AddChildren(params Node[] children);
+}

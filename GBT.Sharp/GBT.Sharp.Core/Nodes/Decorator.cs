@@ -78,11 +78,30 @@ public abstract class DecoratorNode : Node, ISingularParentNode {
     }
 }
 
+public abstract class DecoratorNode<TNode> : DecoratorNode, IParentNode<TNode> where TNode : Node {
+    protected DecoratorNode() {
+    }
+
+    protected DecoratorNode(string name) : base(name) {
+    }
+
+    protected DecoratorNode(string id, string name) : base(id, name) {
+    }
+
+    public new TNode? Child => base.Child as TNode;
+    public new TNode AddChild(Node child) {
+        return base.AddChild(child).Cast<TNode>();
+    }
+    public new TNode AddChildren(params Node[] children) {
+        return base.AddChildren(children).Cast<TNode>();
+    }
+}
+
 /// <summary>
 /// Inverts the result of the child node, 
 /// if it's <see cref="NodeState.Success"/> or <see cref="NodeState.Failure"/>.
 /// </summary>
-public class InverterNode : DecoratorNode {
+public class InverterNode : DecoratorNode<InverterNode> {
     public InverterNode() {
     }
 
@@ -104,7 +123,7 @@ public class InverterNode : DecoratorNode {
 /// <summary>
 /// SucceederNode always returns <see cref="NodeState.Success"/> regardless of the child node result.
 /// </summary>
-public class SucceederNode : DecoratorNode {
+public class SucceederNode : DecoratorNode<SucceederNode> {
     public SucceederNode() {
     }
 
@@ -128,7 +147,7 @@ public class SucceederNode : DecoratorNode {
 /// <para>2. Repeat by times if <see cref="Times"/> is set to a non-negative integer. The child node will
 /// be executed repeatedly for the given times. Node that <c>0</c> times will forbid the child node to run.</para>
 /// </summary>
-public class RepeaterNode : DecoratorNode {
+public class RepeaterNode : DecoratorNode<RepeaterNode> {
     private int _currentTimes;
     /// <summary>
     /// How many times to run the child node.
@@ -177,7 +196,7 @@ public class RepeaterNode : DecoratorNode {
 /// <summary>
 /// RepeatUntilFailureNode repeats the child node execution until it fails.
 /// </summary>
-public class RepeatUntilFailureNode : DecoratorNode {
+public class RepeatUntilFailureNode : DecoratorNode<RepeatUntilFailureNode> {
     public RepeatUntilFailureNode() {
     }
 

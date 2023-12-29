@@ -58,6 +58,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         Context.ResetCurrentChild();
     }
 
+
     public IParentNode AddChild(Node child) {
         if (!_children.Contains(child)) {
             _children.Add(child);
@@ -77,6 +78,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         return this;
     }
 
+
     public bool RemoveChild(Node child) {
         var removed = _children.Remove(child);
         if (removed) {
@@ -84,6 +86,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         }
         return removed;
     }
+
 
     public class Ctx : NodeContext<ListCompositeNode> {
         private int _currentChildIndex = -1;
@@ -133,11 +136,31 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
     }
 }
 
+public abstract class ListCompositeNode<TNode> : ListCompositeNode, IParentNode<TNode> where TNode : Node {
+    public new IEnumerable<TNode> Children => base.Children.Cast<TNode>();
+    public ListCompositeNode(string id, string name) : base(id, name) {
+    }
+
+    protected ListCompositeNode(string name) : base(name) {
+    }
+
+    protected ListCompositeNode() {
+    }
+
+    public new TNode AddChild(Node child) {
+        return base.AddChild(child).Cast<TNode>();
+    }
+
+    public new TNode AddChildren(params Node[] children) {
+        return base.AddChildren(children).Cast<TNode>();
+    }
+}
+
 /// <summary>
 /// SequenceNode executes its children sequentially until one of them fails,
 /// analogous to the logical AND operator.
 /// </summary>
-public class SequenceNode : ListCompositeNode {
+public class SequenceNode : ListCompositeNode<SequenceNode> {
     public SequenceNode() {
     }
 
@@ -170,7 +193,7 @@ public class SequenceNode : ListCompositeNode {
 /// SelectorNode executes its children sequentially until one of them succeeds,
 /// analogous to the logical OR operator.
 /// </summary>
-public class SelectorNode : ListCompositeNode {
+public class SelectorNode : ListCompositeNode<SelectorNode> {
     public SelectorNode() {
     }
 
