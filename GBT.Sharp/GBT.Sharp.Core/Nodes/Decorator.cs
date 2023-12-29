@@ -27,7 +27,7 @@ public abstract class DecoratorNode : Node, IDecoratorNode {
             RemoveChild(Child);
         }
         Child = child;
-        Child.Context = Context;
+        Child.Runtime = Runtime;
         if (child.Parent != this) {
             child.Parent = this;
         }
@@ -38,14 +38,14 @@ public abstract class DecoratorNode : Node, IDecoratorNode {
             return false;
         }
 
-        Child.Context = null;
+        Child.Runtime = null;
         Child = null;
         return true;
     }
 
     public void AfterChildExit(Node child) {
         if (child != Child) {
-            Context?.Trace.Add(this, $"skip: child exit");
+            Runtime?.Trace.Add(this, $"skip: child exit");
             BehaviorTree.Logger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
             return;
         }
@@ -56,7 +56,7 @@ public abstract class DecoratorNode : Node, IDecoratorNode {
 
     protected sealed override void DoTick() {
         if (Child is null || Child.IsDisabled) {
-            Context?.Trace.Add(this, $"no current child");
+            Runtime?.Trace.Add(this, $"no current child");
             State = NodeState.Failure;
             BehaviorTree.Logger.Error("failed for no child is available or enabled", this);
             return;
@@ -141,7 +141,7 @@ public class RepeaterNode : DecoratorNode {
     }
     protected override void DoTick(Node child) {
         if (ShouldStop()) {
-            Context?.Trace.Add(this, "repeat ends on target times");
+            Runtime?.Trace.Add(this, "repeat ends on target times");
             State = NodeState.Success;
             BehaviorTree.Logger.Warn($"repeater node not run at all: current times is {_currentTimes}, while the repeat times is {Times}", this);
             return;

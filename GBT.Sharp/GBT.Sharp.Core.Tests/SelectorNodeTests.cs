@@ -30,10 +30,10 @@ public class SelectorNodeTests {
         _child2.OnTick = (node) => node.State = NodeState.Success;
         _root.Tick();
         Assert.Equal(NodeState.Running, _root.State);
-        Assert.Equal(_child2, _root.NodeContext?.CurrentChild);
+        Assert.Equal(_child2, _root.Context.CurrentChild);
         _root.Tick();
         Assert.Equal(NodeState.Success, _root.State);
-        Assert.Null(_root.NodeContext?.CurrentChild);
+        Assert.Null(_root.Context.CurrentChild);
     }
     [Fact]
     public void ShouldFailIfAllChildrenFail() {
@@ -41,10 +41,10 @@ public class SelectorNodeTests {
         _child2.OnTick = (node) => node.State = NodeState.Failure;
         _root.Tick();
         Assert.Equal(NodeState.Running, _root.State);
-        Assert.Equal(_child2, _root.NodeContext?.CurrentChild);
+        Assert.Equal(_child2, _root.Context.CurrentChild);
         _root.Tick();
         Assert.Equal(NodeState.Failure, _root.State);
-        Assert.Null(_root.NodeContext?.CurrentChild);
+        Assert.Null(_root.Context.CurrentChild);
     }
     [Fact]
     public void ShouldKeepRunningIfChildIsRunning() {
@@ -53,7 +53,7 @@ public class SelectorNodeTests {
         for (var i = 0; i < 10; i++) {
             _root.Tick();
             Assert.Equal(NodeState.Running, _root.State);
-            Assert.Equal(_child1, _root.NodeContext?.CurrentChild);
+            Assert.Equal(_child1, _root.Context.CurrentChild);
         }
     }
     [Fact]
@@ -62,7 +62,7 @@ public class SelectorNodeTests {
         _child2.OnTick = (node) => node.State = NodeState.Success;
         _root.Tick();
         Assert.Equal(NodeState.Success, _root.State);
-        Assert.Null(_root.NodeContext?.CurrentChild);
+        Assert.Null(_root.Context.CurrentChild);
         Assert.Equivalent(
             new[] { _child2.ID, "<tree>" },
             _tree.Context.Trace.Passes.FirstOrDefault()?.FootprintsByNodes.Keys);

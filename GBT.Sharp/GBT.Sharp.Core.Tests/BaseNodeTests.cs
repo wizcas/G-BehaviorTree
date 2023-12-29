@@ -29,7 +29,7 @@ public class BaseNodeTests {
         Assert.Equal("test node", _node.Name);
         Assert.Equal(NodeState.Unvisited, _node.State);
         Assert.False(_node.IsDisabled);
-        Assert.Equal(_tree.Context, _node.Context);
+        Assert.Equal(_tree.Context, _node.Runtime);
         Assert.Null(_node.Parent);
     }
     [Fact]
@@ -40,7 +40,7 @@ public class BaseNodeTests {
     }
     [Fact]
     public void ShouldNotRunIfNoContext() {
-        _node.Context = null;
+        _node.Runtime = null;
         _node.Tick();
         Assert.Equal(NodeState.Unvisited, _node.State);
     }

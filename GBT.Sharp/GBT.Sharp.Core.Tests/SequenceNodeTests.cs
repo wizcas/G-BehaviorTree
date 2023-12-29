@@ -36,10 +36,10 @@ public class SequenceNodeTests {
         _child2.OnTick = (node) => node.State = NodeState.Success;
         _root.Tick();
         Assert.Equal(NodeState.Running, _root.State);
-        Assert.Equal(_child2, _root.NodeContext?.CurrentChild);
+        Assert.Equal(_child2, _root.Context.CurrentChild);
         _root.Tick();
         Assert.Equal(NodeState.Success, _root.State);
-        Assert.Null(_root.NodeContext?.CurrentChild);
+        Assert.Null(_root.Context.CurrentChild);
         AssertRootExitTimes(1);
     }
     [Fact]
@@ -48,7 +48,7 @@ public class SequenceNodeTests {
         _child2.OnTick = (node) => node.State = NodeState.Success;
         _root.Tick();
         Assert.Equal(NodeState.Failure, _root.State);
-        Assert.Null(_root.NodeContext?.CurrentChild);
+        Assert.Null(_root.Context.CurrentChild);
         AssertRootExitTimes(1);
     }
     [Fact]
@@ -58,7 +58,7 @@ public class SequenceNodeTests {
         for (var i = 0; i < 10; i++) {
             _root.Tick();
             Assert.Equal(NodeState.Running, _root.State);
-            Assert.Equal(_child1, _root.NodeContext?.CurrentChild);
+            Assert.Equal(_child1, _root.Context.CurrentChild);
         }
         // The root node never exists because child 1 is still running
         AssertRootExitTimes(0);
@@ -69,7 +69,7 @@ public class SequenceNodeTests {
         _child2.OnTick = (node) => node.State = NodeState.Success;
         _root.Tick();
         Assert.Equal(NodeState.Success, _root.State);
-        Assert.Null(_root.NodeContext?.CurrentChild);
+        Assert.Null(_root.Context.CurrentChild);
         Assert.Equivalent(new[] { _child2.ID, "<tree>" },
                           _tree.Context.Trace.Passes.FirstOrDefault()?.FootprintsByNodes.Keys);
         AssertRootExitTimes(1);

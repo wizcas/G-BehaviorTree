@@ -17,32 +17,32 @@ public abstract class Node {
 
     public bool IsDisabled { get; set; }
 
-    private TreeContext? _context;
-    public TreeContext? Context {
-        get => _context;
+    private TreeRuntime? _runtime;
+    public TreeRuntime? Runtime {
+        get => _runtime;
         set {
-            if (_context != value) {
-                _context = value;
+            if (_runtime != value) {
+                _runtime = value;
                 OnContextChanged();
             }
         }
     }
 
-    public NodeContext NodeContext { get; init; }
+    public NodeContext Context { get; init; }
 
     /// <summary>
     /// A quick accessor to <see cref="NodeContext.State"/>.
     /// </summary>
     public NodeState State {
-        get => NodeContext.State;
-        set => NodeContext.State = value;
+        get => Context.State;
+        set => Context.State = value;
     }
-    protected bool CanExit => Context?.RunningNode == this && State != NodeState.Running;
+    protected bool CanExit => Runtime?.RunningNode == this && State != NodeState.Running;
 
     public Node(string id, string name) {
         ID = id;
         Name = name;
-        NodeContext = CreateNodeContext();
+        Context = CreateContext();
         Reset();
     }
     public Node(string name) : this(Nanoid.Generate(), name) { }
@@ -50,15 +50,15 @@ public abstract class Node {
         Name = $"New {GetType().Name}";
     }
 
-    protected virtual NodeContext CreateNodeContext() {
+    protected virtual NodeContext CreateContext() {
         return new NodeContext(this);
     }
 
     protected void Enter() {
-        if (Context is not null) {
-            Context.Trace.Add(this, "enter");
+        if (Runtime is not null) {
+            Runtime.Trace.Add(this, "enter");
             Initialize();
-            Context.RunningNode = this;
+            Runtime.RunningNode = this;
         }
     }
 
@@ -73,21 +73,21 @@ public abstract class Node {
     /// Called everytime the node is executed.
     /// </summary>
     public void Tick() {
-        if (Context is null) {
+        if (Runtime is null) {
             State = NodeState.Unvisited;
             BehaviorTree.Logger.Error("this node has no context", this);
             return;
         }
         if (IsDisabled) {
             State = NodeState.Unvisited;
-            Context.Trace.Add(this, "skip: disabled");
+            Runtime.Trace.Add(this, "skip: disabled");
             return;
         }
         if (State != NodeState.Running) {
             Enter();
         }
         State = NodeState.Running;
-        Context.Trace.Add(this, "tick");
+        Runtime.Trace.Add(this, "tick");
         DoTick();
         TryExit();
     }
@@ -104,10 +104,10 @@ public abstract class Node {
         if (!CanExit) {
             return;
         }
-        Context!.Trace.Add(this, "exit");
+        Runtime!.Trace.Add(this, "exit");
         CleanUp();
         if (State != NodeState.Unvisited) {
-            Context!.RunningNode = Parent;
+            Runtime!.RunningNode = Parent;
             (Parent as IParentNode)?.AfterChildExit(this);
         }
     }
@@ -121,10 +121,10 @@ public abstract class Node {
     /// Reset this node to its initial state and data.
     /// </summary>
     public virtual void Reset() {
-        Context?.Trace.Add(this, "reset");
+        Runtime?.Trace.Add(this, "reset");
         if (State != NodeState.Unvisited) {
             CleanUp();
-            NodeContext.Reset();
+            Context.Reset();
             State = NodeState.Unvisited;
         }
     }
@@ -197,9 +197,9 @@ public abstract class Node<TContext> : Node where TContext : NodeContext {
     protected Node(string id, string name) : base(id, name) {
     }
 
-    public new TContext NodeContext => (TContext)base.NodeContext;
+    public new TContext Context => (TContext)base.Context;
 
-    protected override TContext CreateNodeContext() {
+    protected override TContext CreateContext() {
         return (TContext)Activator.CreateInstance(typeof(TContext), this)!;
     }
 }

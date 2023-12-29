@@ -12,8 +12,8 @@ public interface ICompositeNode : IParentNode {
 /// With this manner, the children can be accessed by index, which can be convenient for
 /// sequential execution or random access.
 /// </summary>
-public abstract class ListCompositeNode : Node<ListCompositeNode.C>, ICompositeNode {
-    protected List<Node> _children = new();
+public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, ICompositeNode {
+    private List<Node> _children = new();
     public IEnumerable<Node> Children => _children;
 
     public ListCompositeNode(string id, string name) : base(id, name) {
@@ -27,13 +27,13 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.C>, ICompositeN
 
     protected override void Initialize() {
         base.Initialize();
-        NodeContext.GoToNextChild();
+        Context.GoToNextChild();
         BehaviorTree.Logger.Info("initialized", this);
     }
     protected sealed override void DoTick() {
-        Node? child = NodeContext.CurrentChild;
+        Node? child = Context.CurrentChild;
         if (child is null) {
-            Context?.Trace.Add(this, $"no current child");
+            Runtime?.Trace.Add(this, $"no current child");
             State = NodeState.Failure;
             BehaviorTree.Logger.Error($"cannot tick because current child is empty", this);
             return;
@@ -41,9 +41,9 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.C>, ICompositeN
         child.Tick();
     }
     public void AfterChildExit(Node child) {
-        if (child != NodeContext.CurrentChild) {
-            Context?.Trace.Add(this, $"skip: child exit");
-            BehaviorTree.Logger.Warn($"skip: try to exit child {child} but the current child is {NodeContext.CurrentChild}", child);
+        if (child != Context.CurrentChild) {
+            Runtime?.Trace.Add(this, $"skip: child exit");
+            BehaviorTree.Logger.Warn($"skip: try to exit child {child} but the current child is {Context.CurrentChild}", child);
             return;
         }
         ProceedChildState(child);
@@ -57,18 +57,18 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.C>, ICompositeN
             Reset();
         }
         foreach (Node child in _children) {
-            child.Context = Context;
+            child.Runtime = Runtime;
         }
     }
     public override void Reset() {
         base.Reset();
-        NodeContext.ResetCurrentChild();
+        Context.ResetCurrentChild();
     }
 
     public void AddChild(Node child) {
         if (!_children.Contains(child)) {
             _children.Add(child);
-            child.Context = Context;
+            child.Runtime = Runtime;
         }
         if (child.Parent != this) {
             // In case AddChild is not called from child.SetParent()
@@ -79,7 +79,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.C>, ICompositeN
     public bool RemoveChild(Node child) {
         var removed = _children.Remove(child);
         if (removed) {
-            child.Context = null;
+            child.Runtime = null;
         }
         return removed;
     }
@@ -99,7 +99,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.C>, ICompositeN
         }
     }
 
-    public class C : NodeContext<ListCompositeNode> {
+    public class Ctx : NodeContext<ListCompositeNode> {
         private int _currentChildIndex = -1;
         private List<Node> Children => Node._children;
         public Node? CurrentChild {
@@ -123,7 +123,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.C>, ICompositeN
                 }
             }
         }
-        public C(ListCompositeNode node) : base(node) {
+        public Ctx(ListCompositeNode node) : base(node) {
         }
         public override void Reset() {
             base.Reset();
@@ -167,11 +167,11 @@ public class SequenceNode : ListCompositeNode {
                 State = NodeState.Running;
                 break;
             case NodeState.Success:
-                NodeContext.GoToNextChild();
-                State = NodeContext.CurrentChild is null ? NodeState.Success : NodeState.Running;
+                Context.GoToNextChild();
+                State = Context.CurrentChild is null ? NodeState.Success : NodeState.Running;
                 break;
             case NodeState.Failure:
-                NodeContext.ResetCurrentChild();
+                Context.ResetCurrentChild();
                 State = NodeState.Failure;
                 break;
             default:
@@ -200,12 +200,12 @@ public class SelectorNode : ListCompositeNode {
                 State = NodeState.Running;
                 break;
             case NodeState.Success:
-                NodeContext.ResetCurrentChild();
+                Context.ResetCurrentChild();
                 State = NodeState.Success;
                 break;
             case NodeState.Failure:
-                NodeContext.GoToNextChild();
-                State = NodeContext.CurrentChild is null ? NodeState.Failure : NodeState.Running;
+                Context.GoToNextChild();
+                State = Context.CurrentChild is null ? NodeState.Failure : NodeState.Running;
                 break;
             default:
                 break;

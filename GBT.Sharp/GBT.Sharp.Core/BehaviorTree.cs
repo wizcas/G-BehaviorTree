@@ -6,10 +6,10 @@ public class BehaviorTree {
     public static TreeLogger Logger { get; } = new TreeLogger();
 
 
-    private TreeContext _context;
+    private TreeRuntime _context;
     private Node? _rootNode;
 
-    public TreeContext Context {
+    public TreeRuntime Context {
         get => _context;
         set {
             if (_context != value) {
@@ -19,13 +19,13 @@ public class BehaviorTree {
         }
     }
 
-    public BehaviorTree(TreeContext? context = null) {
+    public BehaviorTree(TreeRuntime? context = null) {
         _context = context ?? CreateContext();
     }
 
     public void SetRootNode(Node rootNode) {
         _rootNode = rootNode;
-        _rootNode.Context = _context;
+        _rootNode.Runtime = _context;
     }
 
     public void Tick() {
@@ -51,8 +51,8 @@ public class BehaviorTree {
         Context.RunningNode = null;
     }
 
-    private TreeContext CreateContext() {
-        return new TreeContext(this);
+    private TreeRuntime CreateContext() {
+        return new TreeRuntime(this);
     }
 
     private void OnContextChanged() {

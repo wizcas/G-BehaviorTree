@@ -4,8 +4,13 @@ using System.Buffers;
 
 namespace GBT.Sharp.Core;
 
-
-public class TreeContext {
+/// <summary>
+/// The runtime context of a Behavior Tree, which contains the tree that it belongs to,
+/// the current runtime state, and traces for diagnostics.
+/// The TreeRuntime is independent to the BehaviorTree's static data and is serialized
+/// separately.
+/// </summary>
+public class TreeRuntime {
     public BehaviorTree Tree { get; init; }
     public Trace Trace { get; } = new();
     private Node? _runningNode;
@@ -24,7 +29,7 @@ public class TreeContext {
             // Lazy-set node context in the tree
             if (value is not null) {
                 lock (NodeContexts) {
-                    NodeContexts[value.ID] = value.NodeContext;
+                    NodeContexts[value.ID] = value.Context;
                 }
             }
         }
@@ -32,7 +37,7 @@ public class TreeContext {
 
     public Dictionary<string, NodeContext> NodeContexts { get; } = new();
 
-    public TreeContext(BehaviorTree tree) {
+    public TreeRuntime(BehaviorTree tree) {
         Tree = tree;
     }
 
@@ -43,29 +48,4 @@ public class TreeContext {
         // TODO
         return Task.CompletedTask;
     }
-}
-
-public class NodeContext {
-    public Node Node { get; set; }
-
-    private NodeState _state;
-    public NodeState State {
-        get => _state;
-        set {
-            if (_state != value) {
-                Node.Context?.Trace.Add(Node, $"state change: {_state} -> {value}");
-            }
-            _state = value;
-        }
-    }
-
-    public NodeContext(Node node) {
-        Node = node;
-    }
-    public virtual void Reset() { }
-}
-public class NodeContext<T> : NodeContext where T : Node {
-    public NodeContext(T node) : base(node) {
-    }
-    public new T Node => (T)base.Node;
 }
