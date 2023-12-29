@@ -22,6 +22,7 @@ public interface IParentNode {
     /// this may remove the current child or remove the child from a list.
     /// </summary>
     bool RemoveChild(Node child);
+    void AddChildren(params Node[] children);
     /// <summary>
     /// Called when a child node is exited, which is when the parent node
     /// needs to determine its next state.

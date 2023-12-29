@@ -69,27 +69,18 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         }
     }
 
+    public void AddChildren(params Node[] children) {
+        foreach (Node child in children) {
+            AddChild(child);
+        }
+    }
+
     public bool RemoveChild(Node child) {
         var removed = _children.Remove(child);
         if (removed) {
             child.Runtime = null;
         }
         return removed;
-    }
-
-    protected override void ReadSaveData(SavedData save) {
-        base.ReadSaveData(save);
-        if (save.Data.TryGetValue(nameof(Children), out var children)) {
-            if (children is null) {
-                BehaviorTree.Logger.Warn($"failed to load children from save data due to null data", this);
-                return;
-            }
-            if (children is not List<Node> validChildren) {
-                BehaviorTree.Logger.Error($"failed to load children from save data due to mistmatching data type: {children.GetType().Name}", this);
-                return;
-            }
-            _children = validChildren;
-        }
     }
 
     public class Ctx : NodeContext<ListCompositeNode> {

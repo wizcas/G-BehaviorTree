@@ -32,6 +32,14 @@ public abstract class DecoratorNode : Node, ISingularParentNode {
             child.Parent = this;
         }
     }
+    public void AddChildren(params Node[] children) {
+        if (children.Length > 1) {
+            throw new InvalidOperationException("Decorator node can only have one child");
+        }
+        if (children.Length == 1) {
+            AddChild(children[0]);
+        }
+    }
 
     public bool RemoveChild(Node child) {
         if (Child != child) {

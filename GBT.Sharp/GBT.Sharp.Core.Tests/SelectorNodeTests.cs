@@ -67,42 +67,4 @@ public class SelectorNodeTests {
             new[] { _child2.ID, "<tree>" },
             _tree.Context.Trace.Passes.FirstOrDefault()?.FootprintsByNodes.Keys);
     }
-    [Fact]
-    public void ShouldSaveLoadByHierarchy() {
-        var root = new SelectorNode("root");
-        var child1 = new CallbackNode("child 1") { Parent = root };
-        var child2 = new CallbackNode("child 2") { Parent = root };
-        List<Node.SavedData> saves = [];
-        // Save
-        root.Save(saves);
-        Assert.Equal(3, saves.Count);
-        var index = 0;
-        foreach (Node node in new Node[] { root, child1, child2 }) {
-            Assert.Equivalent(new {
-                NodeType = node.GetType(),
-                node.ID,
-                node.Name,
-                node.IsDisabled,
-            }, saves[index++]);
-        }
-        // Load
-        Dictionary<string, Node> loadedNodes = [];
-        Node[] results = saves.Select(save => save.LoadNode(loadedNodes)).ToArray();
-        index = 0;
-        foreach (Node node in new Node[] { root, child1, child2 }) {
-            Node result = results[index++];
-            Assert.Equivalent(new {
-                node.ID,
-                node.Name,
-                node.IsDisabled,
-            }, new {
-                result.ID,
-                result.Name,
-                result.IsDisabled,
-            });
-        }
-        Assert.Equivalent(
-            root.Children.Select(c => c.ID),
-            (results[0] as IParentNode)?.Children.Select(c => c.ID));
-    }
 }
