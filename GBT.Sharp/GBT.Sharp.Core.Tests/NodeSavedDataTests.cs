@@ -56,6 +56,13 @@ public class NodeSavedDataTests(ITestOutputHelper output) {
             }
         }
     }
+    [Fact]
+    public void ShouldSaveRepeatTimes() {
+        var node = new RepeaterNode("rep") { Times = 3 };
+        NodeData saved = node.Save(null)[0];
+        RepeaterNode loaded = saved.LoadNode<RepeaterNode>([]);
+        Assert.Equal(3, loaded.Times);
+    }
 }
 
 public class NodeHierarchyGeneartor : IEnumerable<object[]> {
@@ -81,20 +88,29 @@ public class NodeHierarchyGeneartor : IEnumerable<object[]> {
         yield return [new TestCase(new CallbackNode("child 1"))];
 
         // Case: Single empty parent
-        yield return [new TestCase(new SequenceNode("root"))];
+        yield return [new TestCase(new SequenceNode("seq"))];
 
         // Case: Sequence
-        SequenceNode root = new SequenceNode("root").AddChildren(
+        SequenceNode root = new SequenceNode("seq").AddChildren(
             new CallbackNode("child 1"),
             new CallbackNode("child 2"));
         yield return [new TestCase(root)];
 
         // Case: Nested Selector
-        root = new SequenceNode("root").AddChild(
-            new SelectorNode("root 2").AddChildren(
+        root = new SequenceNode("seq").AddChild(
+            new SelectorNode("sel").AddChildren(
                 new CallbackNode("child 1"),
                 new CallbackNode("child 2")));
         yield return [new TestCase(root)];
+
+        // Cast: Composite and Decorator
+        yield return [new TestCase(
+                new InverterNode("inv").AddChild(
+                    new SelectorNode("sel").AddChildren(
+                        new SucceederNode("succ").AddChild(
+                            new CallbackNode("child 1")),
+                        new CallbackNode("child 2")
+            )))];
     }
 
     IEnumerator IEnumerable.GetEnumerator() {

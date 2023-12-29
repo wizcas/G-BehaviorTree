@@ -28,4 +28,7 @@ public sealed record NodeData(Type NodeType, string ID, string Name, string? Par
         }
         return node;
     }
+    public TNode LoadNode<TNode>(Dictionary<string, Node> loadedNodes) where TNode : Node {
+        return (TNode)LoadNode(loadedNodes);
+    }
 }

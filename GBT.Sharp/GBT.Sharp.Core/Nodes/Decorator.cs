@@ -1,4 +1,6 @@
-﻿namespace GBT.Sharp.Core.Nodes;
+﻿using System.Globalization;
+
+namespace GBT.Sharp.Core.Nodes;
 
 /// <summary>
 /// A Decorator Node is a node that can have only one child.
@@ -180,7 +182,7 @@ public class RepeaterNode : DecoratorNode<RepeaterNode> {
     }
 
     private bool ShouldStop() {
-        return Times >= 0 && _currentTimes >= Times;
+        return Times >= 0 && (_currentTimes >= Times || _currentTimes >= int.MaxValue);
     }
 
     protected override void ProceedChildState(Node child) {
@@ -189,6 +191,18 @@ public class RepeaterNode : DecoratorNode<RepeaterNode> {
         }
         if (ShouldStop()) {
             State = NodeState.Success;
+        }
+    }
+    internal override NodeData WriteSavedData() {
+        NodeData data = base.WriteSavedData();
+        data.Extra[nameof(Times)] = Times;
+        return data;
+    }
+    internal override void ReadSaveData(NodeData save) {
+        base.ReadSaveData(save);
+        if (save.Extra.TryGetValue(nameof(Times), out var times)
+            && times is not null) {
+            Times = Convert.ToInt32(times, CultureInfo.InvariantCulture);
         }
     }
 }

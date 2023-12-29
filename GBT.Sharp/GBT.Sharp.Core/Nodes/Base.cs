@@ -153,13 +153,15 @@ public abstract class Node {
         return $"{Name} ({ID}/{GetType().Name})";
     }
 
-    public void Save(List<NodeData> savedNodes) {
+    public List<NodeData> Save(List<NodeData>? savedNodes) {
+        savedNodes ??= new();
         savedNodes.Add(WriteSavedData());
         if (this is IParentNode parent) {
             foreach (Node child in parent.Children) {
                 child.Save(savedNodes);
             }
         }
+        return savedNodes;
     }
     internal virtual NodeData WriteSavedData() {
         return NodeData.FromNode(this);
