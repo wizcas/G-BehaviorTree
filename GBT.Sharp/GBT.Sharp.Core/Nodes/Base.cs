@@ -86,12 +86,13 @@ public abstract class Node {
     /// If yes, any exit steps of the node will be run.
     /// </summary>
     protected void TryExit() {
-        if (State != NodeState.Running) {
-            CleanUp();
-
-            if (State != NodeState.Unvisited) {
-                Context?.ExitNode(this);
-            }
+        if (State == NodeState.Running) {
+            return;
+        }
+        CleanUp();
+        if (State != NodeState.Unvisited && (Context?.ExitNode(this) ?? false)) {
+            Context?.EnterNode(Parent);
+            (Parent as IParentNode)?.OnChildExit(this);
         }
     }
     /// <summary>

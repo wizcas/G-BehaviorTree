@@ -69,10 +69,10 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.C>, ICompositeN
             BehaviorTree.Logger.Warn($"skip: try to exit child {child} but the current child is {NodeContext?.CurrentChild}", child);
             return;
         }
-        AfterChildExit(child);
+        ProceedChildState(child);
         TryExit();
     }
-    protected abstract void AfterChildExit(Node child);
+    protected abstract void ProceedChildState(Node child);
     protected override void OnContextChanged() {
         base.OnContextChanged();
         if (State == NodeState.Running) {
@@ -188,7 +188,7 @@ public class SequenceNode : ListCompositeNode {
     public SequenceNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(Node child) {
+    protected override void ProceedChildState(Node child) {
         switch (child.State) {
             case NodeState.Running:
                 State = NodeState.Running;
@@ -221,7 +221,7 @@ public class SelectorNode : ListCompositeNode {
     public SelectorNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(Node child) {
+    protected override void ProceedChildState(Node child) {
         switch (child.State) {
             case NodeState.Running:
                 State = NodeState.Running;

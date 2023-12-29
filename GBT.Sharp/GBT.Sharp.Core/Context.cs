@@ -31,14 +31,13 @@ public class TreeContext {
     /// Called when a node finishes running in the current pass by
     /// reaching a final state (success or failure).
     /// </summary>
-    public void ExitNode(Node node) {
+    public bool ExitNode(Node node) {
         Trace.Add(node, $"exit");
         if (RunningNode != node) {
             BehaviorTree.Logger.Warn($"skip: try to exit running node {node} but the running node is {RunningNode}", node);
-            return;
+            return false;
         }
-        EnterNode(node.Parent);
-        (node.Parent as IParentNode)?.OnChildExit(node);
+        return true;
     }
 
     /// <summary>
