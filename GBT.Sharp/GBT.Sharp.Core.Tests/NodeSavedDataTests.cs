@@ -88,18 +88,17 @@ public class NodeHierarchyGeneartor : IEnumerable<object[]> {
         yield return [new TestCase(new SequenceNode("root"))];
 
         // Case: Sequence
-        var root = new SequenceNode("root");
-        root.AddChildren(
+        SequenceNode root = new SequenceNode("root").AddChildren(
             new CallbackNode("child 1"),
-            new CallbackNode("child 2"));
+            new CallbackNode("child 2")).Cast<SequenceNode>();
         yield return [new TestCase(root)];
 
         // Case: Nested Selector
-        root = new SequenceNode("root");
-        var root2 = new SelectorNode("root 2") { Parent = root };
-        root2.AddChildren(
-            new CallbackNode("child 1"),
-            new CallbackNode("child 2"));
+        root = new SequenceNode("root").AddChild(
+            new SelectorNode("root 2").AddChildren(
+                new CallbackNode("child 1"),
+                new CallbackNode("child 2")).Cast<Node>())
+            .Cast<SequenceNode>();
         yield return [new TestCase(root)];
     }
 

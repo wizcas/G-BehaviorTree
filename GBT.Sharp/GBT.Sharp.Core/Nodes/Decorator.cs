@@ -19,9 +19,9 @@ public abstract class DecoratorNode : Node, ISingularParentNode {
 
     public Node? Child { get; private set; }
     public IEnumerable<Node> Children => Child is null ? Enumerable.Empty<Node>() : new[] { Child };
-    public void AddChild(Node child) {
+    public IParentNode AddChild(Node child) {
         if (child == Child) {
-            return;
+            return this;
         }
         if (Child is not null) {
             RemoveChild(Child);
@@ -31,14 +31,16 @@ public abstract class DecoratorNode : Node, ISingularParentNode {
         if (child.Parent != this) {
             child.Parent = this;
         }
+        return this;
     }
-    public void AddChildren(params Node[] children) {
+    public IParentNode AddChildren(params Node[] children) {
         if (children.Length > 1) {
             throw new InvalidOperationException("Decorator node can only have one child");
         }
         if (children.Length == 1) {
             AddChild(children[0]);
         }
+        return this;
     }
 
     public bool RemoveChild(Node child) {

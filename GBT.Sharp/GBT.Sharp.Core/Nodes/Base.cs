@@ -128,6 +128,10 @@ public abstract class Node {
             State = NodeState.Unvisited;
         }
     }
+    public T Cast<T>() where T : Node {
+        return (T)this;
+    }
+
     protected virtual void OnContextChanged() { }
 
     private void SetParent(Node? parent) {

@@ -6,7 +6,7 @@
 /// sequential execution or random access.
 /// </summary>
 public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNode {
-    private List<Node> _children = new();
+    private readonly List<Node> _children = new();
     public IEnumerable<Node> Children => _children;
 
     public ListCompositeNode(string id, string name) : base(id, name) {
@@ -58,7 +58,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         Context.ResetCurrentChild();
     }
 
-    public void AddChild(Node child) {
+    public IParentNode AddChild(Node child) {
         if (!_children.Contains(child)) {
             _children.Add(child);
             child.Runtime = Runtime;
@@ -67,12 +67,14 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
             // In case AddChild is not called from child.SetParent()
             child.Parent = this;
         }
+        return this;
     }
 
-    public void AddChildren(params Node[] children) {
+    public IParentNode AddChildren(params Node[] children) {
         foreach (Node child in children) {
             AddChild(child);
         }
+        return this;
     }
 
     public bool RemoveChild(Node child) {
