@@ -43,16 +43,16 @@ public abstract class DecoratorNode : Node, IDecoratorNode {
         return true;
     }
 
-    public void OnChildExit(Node child) {
+    public void AfterChildExit(Node child) {
         if (child != Child) {
             Context?.Trace.Add(this, $"skip: child exit");
             BehaviorTree.Logger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
             return;
         }
-        AfterChildExit(child);
+        ProceedChildState(child);
         TryExit();
     }
-    protected abstract void AfterChildExit(Node child);
+    protected abstract void ProceedChildState(Node child);
 
     protected sealed override void DoTick() {
         if (Child is null || Child.IsDisabled) {
@@ -82,7 +82,7 @@ public class InverterNode : DecoratorNode {
     public InverterNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(Node child) {
+    protected override void ProceedChildState(Node child) {
         State = child.State switch {
             NodeState.Success => NodeState.Failure,
             NodeState.Failure => NodeState.Success,
@@ -104,7 +104,7 @@ public class SucceederNode : DecoratorNode {
     public SucceederNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(Node child) {
+    protected override void ProceedChildState(Node child) {
         State = NodeState.Success;
     }
 
@@ -135,7 +135,7 @@ public class RepeaterNode : DecoratorNode {
     public RepeaterNode() {
     }
 
-    public override void Initialize() {
+    protected override void Initialize() {
         base.Initialize();
         _currentTimes = 0;
     }
@@ -154,7 +154,7 @@ public class RepeaterNode : DecoratorNode {
         return Times >= 0 && _currentTimes >= Times;
     }
 
-    protected override void AfterChildExit(Node child) {
+    protected override void ProceedChildState(Node child) {
         if (child.State is NodeState.Success or NodeState.Failure) {
             _currentTimes++;
         }
@@ -177,7 +177,7 @@ public class RepeatUntilFailureNode : DecoratorNode {
     public RepeatUntilFailureNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(Node child) {
+    protected override void ProceedChildState(Node child) {
         State = child.State switch {
             NodeState.Success => NodeState.Running,
             NodeState.Failure => NodeState.Success,

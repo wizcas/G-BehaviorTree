@@ -26,5 +26,5 @@ public interface IParentNode {
     /// Called when a child node is exited, which is when the parent node
     /// needs to determine its next state.
     /// </summary>
-    void OnChildExit(Node child);
+    void AfterChildExit(Node child);
 }

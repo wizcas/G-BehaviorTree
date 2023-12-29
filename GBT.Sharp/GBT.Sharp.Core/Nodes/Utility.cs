@@ -22,11 +22,11 @@ public class CallbackNode : Node {
         OnTick?.Invoke(this);
     }
 
-    public override void Initialize() {
+    protected override void Initialize() {
         base.Initialize();
         OnInitialize?.Invoke(this);
     }
-    public override void CleanUp() {
+    protected override void CleanUp() {
         base.CleanUp();
         OnCleanUp?.Invoke(this);
     }

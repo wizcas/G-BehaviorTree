@@ -37,12 +37,15 @@ public abstract class Node {
             }
         }
     }
-    private NodeContext? _nodeContext;
-    public NodeContext NodeContext => _nodeContext ??= Context?.GetNodeContext<NodeContext>(this)!;
+
+    public NodeContext NodeContext { get; init; }
+
+    protected bool CanExit => Context?.RunningNode == this && State != NodeState.Running;
 
     public Node(string id, string name) {
         ID = id;
         Name = name;
+        NodeContext = CreateNodeContext();
         Reset();
     }
     public Node(string name) : this(Nanoid.Generate(), name) { }
@@ -50,12 +53,23 @@ public abstract class Node {
         Name = $"New {GetType().Name}";
     }
 
+    protected virtual NodeContext CreateNodeContext() {
+        return new NodeContext(this);
+    }
+
+    protected void Enter() {
+        if (Context is not null) {
+            Context.Trace.Add(this, "enter");
+            Initialize();
+            Context.RunningNode = this;
+        }
+    }
+
     /// <summary>
     /// Set the node ready for running.
     /// This method is for internal purpose.
     /// </summary>
-    public virtual void Initialize() {
-        Context?.Trace.Add(this, "initialize");
+    protected virtual void Initialize() {
     }
 
     /// <summary>
@@ -63,16 +77,17 @@ public abstract class Node {
     /// </summary>
     public void Tick() {
         if (Context is null) {
+            State = NodeState.Unvisited;
             BehaviorTree.Logger.Error("this node has no context", this);
             return;
         }
         if (IsDisabled) {
+            State = NodeState.Unvisited;
             Context.Trace.Add(this, "skip: disabled");
             return;
         }
         if (State != NodeState.Running) {
-            Initialize();
-            Context.EnterNode(this);
+            Enter();
         }
         State = NodeState.Running;
         Context.Trace.Add(this, "tick");
@@ -86,21 +101,24 @@ public abstract class Node {
     /// If yes, any exit steps of the node will be run.
     /// </summary>
     protected void TryExit() {
-        if (State == NodeState.Running) {
+        // Need to check if the node is still to be exited, 
+        // because if this is a parent node and its child will exit within this tick,
+        // TryExit() will be called twice - once when the child exits, and once in the parent's Tick().
+        if (!CanExit) {
             return;
         }
+        Context!.Trace.Add(this, "exit");
         CleanUp();
-        if (State != NodeState.Unvisited && (Context?.ExitNode(this) ?? false)) {
-            Context?.EnterNode(Parent);
-            (Parent as IParentNode)?.OnChildExit(this);
+        if (State != NodeState.Unvisited) {
+            Context!.RunningNode = Parent;
+            (Parent as IParentNode)?.AfterChildExit(this);
         }
     }
     /// <summary>
     /// Clean up any intermediate state or data that was set
     /// by running this node.
     /// </summary>
-    public virtual void CleanUp() {
-        Context?.Trace.Add(this, "clean up");
+    protected virtual void CleanUp() {
     }
     /// <summary>
     /// Reset this node to its initial state and data.
@@ -109,12 +127,11 @@ public abstract class Node {
         Context?.Trace.Add(this, "reset");
         if (State != NodeState.Unvisited) {
             CleanUp();
+            NodeContext.Reset();
+            State = NodeState.Unvisited;
         }
-        State = NodeState.Unvisited;
     }
-    protected virtual void OnContextChanged() {
-        _nodeContext = null;
-    }
+    protected virtual void OnContextChanged() { }
 
     private void SetParent(Node? parent) {
         if (parent == Parent) {
@@ -183,5 +200,9 @@ public abstract class Node<TContext> : Node where TContext : NodeContext {
     protected Node(string id, string name) : base(id, name) {
     }
 
-    public new TContext? NodeContext => Context?.GetNodeContext<TContext>(this);
+    public new TContext NodeContext => (TContext)base.NodeContext;
+
+    protected override TContext CreateNodeContext() {
+        return (TContext)Activator.CreateInstance(typeof(TContext), this)!;
+    }
 }

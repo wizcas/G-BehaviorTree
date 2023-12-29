@@ -48,7 +48,7 @@ public class BehaviorTree {
             node.Reset();
             node = node.Parent;
         }
-        Context.EnterNode(null);
+        Context.RunningNode = null;
     }
 
     private TreeContext CreateContext() {
