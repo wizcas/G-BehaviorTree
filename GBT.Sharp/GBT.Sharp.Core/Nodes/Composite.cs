@@ -1,18 +1,11 @@
 ﻿namespace GBT.Sharp.Core.Nodes;
-/// <summary>
-/// A Composite Node is a node that can have multiple children.
-/// The node controls the flow of execution of its children in a specific way.
-/// </summary>
-public interface ICompositeNode : IParentNode {
-    // Node? CurrentChild { get; }
-}
 
 /// <summary>
 /// This is the base class for all composite nodes who manages its children in a list.
 /// With this manner, the children can be accessed by index, which can be convenient for
 /// sequential execution or random access.
 /// </summary>
-public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, ICompositeNode {
+public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNode {
     private List<Node> _children = new();
     public IEnumerable<Node> Children => _children;
 

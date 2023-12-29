@@ -3,11 +3,11 @@
 /// <summary>
 /// A Decorator Node is a node that can have only one child.
 /// </summary>
-public interface IDecoratorNode : IParentNode {
+public interface ISingularParentNode : IParentNode {
     Node? Child { get; }
 }
 
-public abstract class DecoratorNode : Node, IDecoratorNode {
+public abstract class DecoratorNode : Node, ISingularParentNode {
     public DecoratorNode(string id, string name) : base(id, name) {
     }
 
