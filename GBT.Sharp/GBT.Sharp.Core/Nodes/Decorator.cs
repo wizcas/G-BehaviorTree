@@ -37,7 +37,7 @@ public abstract class DecoratorNode : Node, ISingularParentNode {
     }
     public IParentNode AddChildren(params Node[] children) {
         if (children.Length > 1) {
-            throw new InvalidOperationException("Decorator node can only have one child");
+            throw new InvalidOperationException($"DecoratorNode {Name} can only have one child");
         }
         if (children.Length == 1) {
             AddChild(children[0]);

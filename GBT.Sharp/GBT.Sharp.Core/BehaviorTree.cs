@@ -1,4 +1,6 @@
 ﻿using GBT.Sharp.Core.Nodes;
+using MessagePack;
+using System.Buffers;
 
 namespace GBT.Sharp.Core;
 
@@ -40,7 +42,9 @@ public class BehaviorTree {
     }
 
     public void Interrupt() {
-        if (Context.RunningNode is null) return;
+        if (Context.RunningNode is null) {
+            return;
+        }
 
         Context.Trace.Add(null, $"interrupt");
         Node? node = Context.RunningNode;
@@ -57,5 +61,40 @@ public class BehaviorTree {
 
     private void OnContextChanged() {
         Interrupt();
+    }
+
+    private TreeData WriteSavedData() {
+        return new TreeData(
+            Nodes: _rootNode?.Save(null).ToArray() ?? Array.Empty<NodeData>(),
+            RootID: _rootNode?.ID ?? string.Empty);
+    }
+    private void ReadSavedData(TreeData data) {
+        if (data.Nodes.Length > 0) {
+            var nodeLoader = new NodeLoader();
+            Dictionary<string, Node> nodes = nodeLoader.LoadAll(data.Nodes);
+            if (string.IsNullOrEmpty(data.RootID)) {
+                Logger.Warn("cannot set loaded root node because RootID is empty", null);
+            } else if (nodes.TryGetValue(data.RootID, out Node? rootNode)) {
+                SetRootNode(rootNode);
+            } else {
+                Logger.Warn($"cannot set loaded root node ({data.RootID}) because it was not loaded", null);
+            }
+        }
+    }
+
+    public void Save(IBufferWriter<byte> writer) {
+        MessagePackSerializer.Serialize(writer, WriteSavedData());
+    }
+    public byte[] Save() {
+        return MessagePackSerializer.Serialize(WriteSavedData());
+    }
+    public void Load(byte[] bin) {
+        ReadSavedData(MessagePackSerializer.Deserialize<TreeData>(bin));
+    }
+    public void Load(ReadOnlyMemory<byte> buffer) {
+        ReadSavedData(MessagePackSerializer.Deserialize<TreeData>(buffer));
+    }
+    public IEnumerable<Node> Flatten() {
+        return _rootNode?.Flatten() ?? Enumerable.Empty<Node>();
     }
 }

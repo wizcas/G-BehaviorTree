@@ -153,6 +153,17 @@ public abstract class Node {
         return $"{Name} ({ID}/{GetType().Name})";
     }
 
+    public IEnumerable<Node> Flatten() {
+        yield return this;
+        if (this is IParentNode parent) {
+            foreach (Node child in parent.Children) {
+                foreach (Node inner in child.Flatten()) {
+                    yield return inner;
+                }
+            }
+        }
+    }
+
     public List<NodeData> Save(List<NodeData>? savedNodes) {
         savedNodes ??= new();
         savedNodes.Add(WriteSavedData());
