@@ -11,16 +11,6 @@ public abstract class Node {
     public string ID { get; }
     public string Name { get; set; }
 
-    private NodeState _state;
-    public NodeState State {
-        get => _state;
-        set {
-            if (_state != value) {
-                Context?.Trace.Add(this, $"state change: {_state} -> {value}");
-            }
-            _state = value;
-        }
-    }
 
     private Node? _parent;
     public Node? Parent { get => _parent; set => SetParent(value); }
@@ -40,6 +30,13 @@ public abstract class Node {
 
     public NodeContext NodeContext { get; init; }
 
+    /// <summary>
+    /// A quick accessor to <see cref="NodeContext.State"/>.
+    /// </summary>
+    public NodeState State {
+        get => NodeContext.State;
+        set => NodeContext.State = value;
+    }
     protected bool CanExit => Context?.RunningNode == this && State != NodeState.Running;
 
     public Node(string id, string name) {
