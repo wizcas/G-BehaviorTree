@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3 uid="uid://e7nyx47xy7c3"]
+
+[ext_resource type="Script" path="res://Scripts/Graph/TreeGraph.cs" id="1_kvu8r"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TreeGraph" type="GraphEdit" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+scroll_offset = Vector2(-40, -40)
+script = ExtResource("1_kvu8r")
+
+[node name="ContextMenu" type="PopupMenu" parent="TreeGraph"]
