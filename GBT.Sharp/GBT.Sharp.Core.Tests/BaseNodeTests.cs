@@ -1,54 +1,64 @@
 using GBT.Sharp.Core.Nodes;
-using Moq;
 using Xunit.Abstractions;
 
 namespace GBT.Sharp.Core.Tests;
 
-public class BaseNodeTests {
-    private readonly Mock<CallbackNode> _t;
-    private readonly BehaviorTree _tree;
-    private readonly ITestOutputHelper _output;
+internal class CallbackCounters {
+    public int Initialize { get; set; }
+    public int CleanUp { get; set; }
 
+    internal CallbackCounters(CallbackNode node) {
+        node.OnInitialize = (node) => Initialize++;
+        node.OnCleanUp = (node) => CleanUp++;
+    }
+}
+public class BaseNodeTests {
+    private readonly ITestOutputHelper _output;
+    private readonly CallbackNode _node;
+    private readonly BehaviorTree _tree;
+    private readonly CallbackCounters _callbackCounters;
     public BaseNodeTests(ITestOutputHelper output) {
         _output = output;
-        _t = new("test node") { CallBase = true };
+        _node = new("test node");
         _tree = new BehaviorTree();
-        _tree.SetRootNode(_t.Object);
+        _tree.SetRootNode(_node);
+        _callbackCounters = new(_node); ;
     }
     [Fact]
     public void ShouldHaveDefaultState() {
-        Assert.Equal("test node", _t.Object.Name);
-        Assert.Equal(NodeState.Unvisited, _t.Object.State);
-        Assert.False(_t.Object.IsDisabled);
-        Assert.Equal(_tree.Context, _t.Object.Context);
-        Assert.Null(_t.Object.Parent);
+        Assert.Equal("test node", _node.Name);
+        Assert.Equal(NodeState.Unvisited, _node.State);
+        Assert.False(_node.IsDisabled);
+        Assert.Equal(_tree.Runtime, _node.Runtime);
+        Assert.Null(_node.Parent);
     }
     [Fact]
-    public void ShouldNotRunIfNotEnabled() {
-        _t.Object.IsDisabled = true;
-        _t.Object.Tick();
-        Assert.Equal(NodeState.Unvisited, _t.Object.State);
+    public void ShouldNotRunIfDisabled() {
+        _node.IsDisabled = true;
+        _node.Tick();
+        Assert.Equal(NodeState.Unvisited, _node.State);
     }
     [Fact]
     public void ShouldNotRunIfNoContext() {
-        _t.Object.Context = null;
-        _t.Object.Tick();
-        Assert.Equal(NodeState.Unvisited, _t.Object.State);
+        _node.Runtime = null;
+        _node.Tick();
+        Assert.Equal(NodeState.Unvisited, _node.State);
     }
     [Fact]
-    public void ShouldInitializeAndRunningAfterTick() {
-        _t.Object.Tick();
-        Assert.Equal(NodeState.Running, _t.Object.State);
-        _t.Verify(node => node.Initialize(), Times.Once());
-        _t.Verify(node => node.CleanUp(), Times.Never());
+    public void ShouldInitializeAndRunOnTick() {
+        _node.Tick();
+        Assert.Equal(NodeState.Running, _node.State);
+        Assert.Equal(1, _callbackCounters.Initialize);
+        Assert.Equal(0, _callbackCounters.CleanUp);
     }
     [Theory]
     [InlineData(NodeState.Success)]
     [InlineData(NodeState.Failure)]
     public void ShouldExitIfOnEndStates(NodeState nextState) {
-        _t.Object.OnTick = (node) => node.State = nextState;
-        _t.Object.Tick();
-        Assert.Equal(nextState, _t.Object.State);
-        _t.Verify(node => node.CleanUp(), Times.Once());
+        _node.OnTick = (node) => node.State = nextState;
+        _node.Tick();
+        Assert.Equal(nextState, _node.State);
+        Assert.Equal(1, _callbackCounters.Initialize);
+        Assert.Equal(1, _callbackCounters.CleanUp);
     }
 }

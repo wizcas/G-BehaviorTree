@@ -1,76 +1,112 @@
 ﻿using GBT.Sharp.Core.Nodes;
+using GBT.Sharp.Core.Serialization;
+using MessagePack;
+using NanoidDotNet;
+using System.Buffers;
 
 namespace GBT.Sharp.Core;
 
-public class BehaviorTree {
+public partial class BehaviorTree {
     public static TreeLogger Logger { get; } = new TreeLogger();
 
+    public string ID { get; private set; } = Nanoid.Generate();
 
-    private ITreeContext _context;
-    private INode? _rootNode;
+    private TreeRuntime _runtime;
+    private Node? _rootNode;
 
-    public INode? RunningNode { get; private set; }
-
-    public ITreeContext Context {
-        get => _context;
+    public TreeRuntime Runtime {
+        get => _runtime;
         set {
-            if (_context != value) {
-                _context = value;
-                OnContextChanged();
+            if (_runtime != value) {
+                _runtime = value;
+                OnRuntimeChanged();
             }
         }
     }
 
-    public BehaviorTree(ITreeContext? context = null) {
-        _context = context ?? CreateContext();
+    public BehaviorTree(TreeRuntime? runtime = null) {
+        _runtime = runtime ?? CreateRuntime();
     }
 
-    public void SetRootNode(INode rootNode) {
+    public void SetRootNode(Node rootNode) {
         _rootNode = rootNode;
-        _rootNode.Context = _context;
+        _rootNode.Runtime = _runtime;
     }
 
     public void Tick() {
         if (_rootNode is null) {
             throw new InvalidOperationException("the tree has no root node");
         } else {
-            if (RunningNode is null) {
-                Context.Trace.NewPass();
+            if (Runtime.RunningNode is null) {
+                Runtime.Trace.NewPass();
             }
-            (RunningNode ?? _rootNode).Tick();
+            (Runtime.RunningNode ?? _rootNode).Tick();
         }
     }
 
-    public void SetRunningNode(INode? node) {
-        Context.Trace.Add(node, node is null ? "Running node cleared" : $"becomes running node");
-        RunningNode = node;
-    }
-    public void ExitRunningNode(INode node) {
-        Context.Trace.Add(node, $"exit");
-        if (RunningNode != node) {
-            Logger.Warn($"skip: try to exit running node {node} but the running node is {RunningNode}", node);
+    public void Interrupt() {
+        if (Runtime.RunningNode is null) {
             return;
         }
-        SetRunningNode(node.Parent);
-        node.Parent?.OnChildExit(node);
-    }
-    public void Interrupt() {
-        if (RunningNode is null) return;
 
-        Context.Trace.Add(null, $"interrupt");
-        INode? node = RunningNode;
+        Runtime.Trace.Add(null, $"interrupt");
+        Node? node = Runtime.RunningNode;
         while (node is not null) {
             node.Reset();
             node = node.Parent;
         }
-        SetRunningNode(null);
+        Runtime.RunningNode = null;
     }
 
-    private TreeContext CreateContext() {
-        return new TreeContext(this);
+    public IEnumerable<Node> Flatten() {
+        return _rootNode?.Flatten() ?? Enumerable.Empty<Node>();
+    }
+    public Node? FindNode(string id) {
+        return Flatten().FirstOrDefault(n => n.ID == id);
+    }
+    public Node? FindNodeByName(string name) {
+        return Flatten().FirstOrDefault(n => n.Name == name);
     }
 
-    private void OnContextChanged() {
+    private TreeRuntime CreateRuntime() {
+        return new TreeRuntime(this);
+    }
+
+    private void OnRuntimeChanged() {
         Interrupt();
+    }
+
+    private Data WriteSavedData() {
+        return new Data(
+            ID: ID,
+            Nodes: _rootNode?.Save(null).ToArray() ?? Array.Empty<Node.Data>(),
+            RootID: _rootNode?.ID ?? string.Empty);
+    }
+    private void ReadSavedData(Data data) {
+        ID = data.ID;
+        if (data.Nodes.Length > 0) {
+            var nodeLoader = new NodeLoader();
+            Dictionary<string, Node> nodes = nodeLoader.LoadAll(data.Nodes);
+            if (string.IsNullOrEmpty(data.RootID)) {
+                Logger.Warn("cannot set loaded root node because RootID is empty", null);
+            } else if (nodes.TryGetValue(data.RootID, out Node? rootNode)) {
+                SetRootNode(rootNode);
+            } else {
+                Logger.Warn($"cannot set loaded root node ({data.RootID}) because it was not loaded", null);
+            }
+        }
+    }
+
+    public void Save(IBufferWriter<byte> writer) {
+        MessagePackSerializer.Serialize(writer, WriteSavedData());
+    }
+    public byte[] Save() {
+        return MessagePackSerializer.Serialize(WriteSavedData());
+    }
+    public void Load(byte[] bin) {
+        ReadSavedData(MessagePackSerializer.Deserialize<Data>(bin));
+    }
+    public void Load(ReadOnlyMemory<byte> buffer) {
+        ReadSavedData(MessagePackSerializer.Deserialize<Data>(buffer));
     }
 }

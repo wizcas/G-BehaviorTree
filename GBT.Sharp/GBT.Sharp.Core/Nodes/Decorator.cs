@@ -1,13 +1,15 @@
-﻿namespace GBT.Sharp.Core.Nodes;
+﻿using System.Globalization;
+
+namespace GBT.Sharp.Core.Nodes;
 
 /// <summary>
 /// A Decorator Node is a node that can have only one child.
 /// </summary>
-public interface IDecoratorNode : IParentNode {
-    INode? Child { get; }
+public interface ISingularParentNode : IParentNode {
+    Node? Child { get; }
 }
 
-public abstract class DecoratorNode : BaseNode, IDecoratorNode {
+public abstract class DecoratorNode : Node, ISingularParentNode {
     public DecoratorNode(string id, string name) : base(id, name) {
     }
 
@@ -17,53 +19,83 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
     protected DecoratorNode() {
     }
 
-    public INode? Child { get; private set; }
-    public void AddChild(INode child) {
+    public Node? Child { get; private set; }
+    public IEnumerable<Node> Children => Child is null ? Enumerable.Empty<Node>() : new[] { Child };
+    public IParentNode AddChild(Node child) {
         if (child == Child) {
-            return;
+            return this;
         }
         if (Child is not null) {
             RemoveChild(Child);
         }
         Child = child;
-        Child.Context = Context;
+        Child.Runtime = Runtime;
         if (child.Parent != this) {
             child.Parent = this;
         }
+        return this;
+    }
+    public IParentNode AddChildren(params Node[] children) {
+        if (children.Length > 1) {
+            throw new InvalidOperationException($"DecoratorNode {Name} can only have one child");
+        }
+        if (children.Length == 1) {
+            AddChild(children[0]);
+        }
+        return this;
     }
 
-    public bool RemoveChild(INode child) {
+    public bool RemoveChild(Node child) {
         if (Child != child) {
             return false;
         }
 
-        Child.Context = null;
+        Child.Runtime = null;
         Child = null;
         return true;
     }
 
-    public void OnChildExit(INode child) {
+    public void AfterChildExit(Node child) {
         if (child != Child) {
-            Context?.Trace.Add(this, $"skip: child exit");
+            Runtime?.Trace.Add(this, $"skip: child exit");
             BehaviorTree.Logger.Warn($"skip reacting on exit child {child} because it doesn't match the actual child {Child}", child);
             return;
         }
-        AfterChildExit(child);
+        ProceedChildState(child);
         TryExit();
     }
-    protected abstract void AfterChildExit(INode child);
+    protected abstract void ProceedChildState(Node child);
 
     protected sealed override void DoTick() {
         if (Child is null || Child.IsDisabled) {
-            Context?.Trace.Add(this, $"no current child");
+            Runtime?.Trace.Add(this, $"no current child");
             State = NodeState.Failure;
             BehaviorTree.Logger.Error("failed for no child is available or enabled", this);
             return;
         }
         DoTick(Child);
     }
-    protected virtual void DoTick(INode child) {
+    protected virtual void DoTick(Node child) {
         child.Tick();
+    }
+}
+
+public abstract class DecoratorNode<TNode> : DecoratorNode, IParentNode<TNode> where TNode : Node {
+    protected DecoratorNode() {
+    }
+
+    protected DecoratorNode(string name) : base(name) {
+    }
+
+    protected DecoratorNode(string id, string name) : base(id, name) {
+    }
+
+    public new TNode? Child => base.Child as TNode;
+    public new TNode AddChild(Node child) {
+        return base.AddChild(child).Cast<TNode>();
+    }
+    public new TNode AddChildren(params Node[] children) {
+        return base.AddChildren(children).Cast<TNode>();
     }
 }
 
@@ -71,7 +103,7 @@ public abstract class DecoratorNode : BaseNode, IDecoratorNode {
 /// Inverts the result of the child node, 
 /// if it's <see cref="NodeState.Success"/> or <see cref="NodeState.Failure"/>.
 /// </summary>
-public class InverterNode : DecoratorNode {
+public class InverterNode : DecoratorNode<InverterNode> {
     public InverterNode() {
     }
 
@@ -81,7 +113,7 @@ public class InverterNode : DecoratorNode {
     public InverterNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(INode child) {
+    protected override void ProceedChildState(Node child) {
         State = child.State switch {
             NodeState.Success => NodeState.Failure,
             NodeState.Failure => NodeState.Success,
@@ -93,7 +125,7 @@ public class InverterNode : DecoratorNode {
 /// <summary>
 /// SucceederNode always returns <see cref="NodeState.Success"/> regardless of the child node result.
 /// </summary>
-public class SucceederNode : DecoratorNode {
+public class SucceederNode : DecoratorNode<SucceederNode> {
     public SucceederNode() {
     }
 
@@ -103,7 +135,7 @@ public class SucceederNode : DecoratorNode {
     public SucceederNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(INode child) {
+    protected override void ProceedChildState(Node child) {
         State = NodeState.Success;
     }
 
@@ -117,7 +149,7 @@ public class SucceederNode : DecoratorNode {
 /// <para>2. Repeat by times if <see cref="Times"/> is set to a non-negative integer. The child node will
 /// be executed repeatedly for the given times. Node that <c>0</c> times will forbid the child node to run.</para>
 /// </summary>
-public class RepeaterNode : DecoratorNode {
+public class RepeaterNode : DecoratorNode<RepeaterNode> {
     private int _currentTimes;
     /// <summary>
     /// How many times to run the child node.
@@ -134,13 +166,13 @@ public class RepeaterNode : DecoratorNode {
     public RepeaterNode() {
     }
 
-    public override void Initialize() {
+    protected override void Initialize() {
         base.Initialize();
         _currentTimes = 0;
     }
-    protected override void DoTick(INode child) {
+    protected override void DoTick(Node child) {
         if (ShouldStop()) {
-            Context?.Trace.Add(this, "repeat ends on target times");
+            Runtime?.Trace.Add(this, "repeat ends on target times");
             State = NodeState.Success;
             BehaviorTree.Logger.Warn($"repeater node not run at all: current times is {_currentTimes}, while the repeat times is {Times}", this);
             return;
@@ -150,10 +182,10 @@ public class RepeaterNode : DecoratorNode {
     }
 
     private bool ShouldStop() {
-        return Times >= 0 && _currentTimes >= Times;
+        return Times >= 0 && (_currentTimes >= Times || _currentTimes >= int.MaxValue);
     }
 
-    protected override void AfterChildExit(INode child) {
+    protected override void ProceedChildState(Node child) {
         if (child.State is NodeState.Success or NodeState.Failure) {
             _currentTimes++;
         }
@@ -161,12 +193,24 @@ public class RepeaterNode : DecoratorNode {
             State = NodeState.Success;
         }
     }
+    public override Data WriteSavedData() {
+        Data data = base.WriteSavedData();
+        data.Extra[nameof(Times)] = Times;
+        return data;
+    }
+    public override void ReadSaveData(Data data) {
+        base.ReadSaveData(data);
+        if (data.Extra.TryGetValue(nameof(Times), out var times)
+            && times is not null) {
+            Times = Convert.ToInt32(times, CultureInfo.InvariantCulture);
+        }
+    }
 }
 
 /// <summary>
 /// RepeatUntilFailureNode repeats the child node execution until it fails.
 /// </summary>
-public class RepeatUntilFailureNode : DecoratorNode {
+public class RepeatUntilFailureNode : DecoratorNode<RepeatUntilFailureNode> {
     public RepeatUntilFailureNode() {
     }
 
@@ -176,7 +220,7 @@ public class RepeatUntilFailureNode : DecoratorNode {
     public RepeatUntilFailureNode(string id, string name) : base(id, name) {
     }
 
-    protected override void AfterChildExit(INode child) {
+    protected override void ProceedChildState(Node child) {
         State = child.State switch {
             NodeState.Success => NodeState.Running,
             NodeState.Failure => NodeState.Success,

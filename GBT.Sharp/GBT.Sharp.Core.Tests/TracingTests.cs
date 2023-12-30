@@ -4,7 +4,7 @@ using GBT.Sharp.Core.Nodes;
 namespace GBT.Sharp.Core.Tests;
 
 public class TracingTests {
-    private BehaviorTree _tree;
+    private readonly BehaviorTree _tree;
 
     public TracingTests() {
         _tree = new();
@@ -24,8 +24,8 @@ public class TracingTests {
         _tree.SetRootNode(root);
         do {
             _tree.Tick();
-        } while (_tree.RunningNode is not null);
-        Trace trace = _tree.Context.Trace;
+        } while (_tree.Runtime.RunningNode is not null);
+        Trace trace = _tree.Runtime.Trace;
         Assert.Single(trace.Passes);
         Pass pass = trace.Passes.First();
         Assert.Equivalent(new string[] { root.ID, child1.ID, child2.ID, "<tree>" },
