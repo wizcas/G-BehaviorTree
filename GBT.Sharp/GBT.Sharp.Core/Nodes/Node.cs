@@ -6,7 +6,7 @@ namespace GBT.Sharp.Core.Nodes;
 /// The base class of all Behavior Tree Nodes, which defines
 /// the basic properties, methods, and behaviors of a node.
 /// </summary>
-public abstract class Node {
+public abstract partial class Node {
     public string ID { get; }
     public string Name { get; set; }
 
@@ -164,7 +164,7 @@ public abstract class Node {
         }
     }
 
-    public List<NodeData> Save(List<NodeData>? savedNodes) {
+    public List<Data> Save(List<Data>? savedNodes) {
         savedNodes ??= new();
         savedNodes.Add(WriteSavedData());
         if (this is IParentNode parent) {
@@ -174,10 +174,10 @@ public abstract class Node {
         }
         return savedNodes;
     }
-    internal virtual NodeData WriteSavedData() {
-        return NodeData.FromNode(this);
+    public virtual Data WriteSavedData() {
+        return Data.FromNode(this);
     }
-    internal virtual void ReadSaveData(NodeData data) {
+    public virtual void ReadSaveData(Data data) {
         IsDisabled = data.IsDisabled;
     }
 

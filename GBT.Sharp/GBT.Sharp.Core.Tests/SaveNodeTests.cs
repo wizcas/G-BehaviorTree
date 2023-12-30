@@ -1,4 +1,5 @@
 using GBT.Sharp.Core.Nodes;
+using GBT.Sharp.Core.Serialization;
 using System.Collections;
 using Xunit.Abstractions;
 
@@ -13,12 +14,12 @@ public class SaveNodeTests(ITestOutputHelper output) {
     public void ShouldSaveLoadHierarchy(NodeHierarchyGeneartor.TestCase testCase) {
         Node[] testedNodes = testCase.Nodes;
         // Save
-        List<NodeData> saves = [];
+        List<Node.Data> saves = [];
         testCase.Root.Save(saves);
         Assert.Equal(testedNodes.Length, saves.Count);
         var index = 0;
         foreach (Node node in testedNodes) {
-            NodeData save = saves[index++];
+            Node.Data save = saves[index++];
             // Assert basic data
             Assert.Equivalent(new {
                 NodeType = node.GetType(),
@@ -61,7 +62,7 @@ public class SaveNodeTests(ITestOutputHelper output) {
     [Fact]
     public void ShouldSaveRepeatTimes() {
         var node = new RepeaterNode("rep") { Times = 3 };
-        NodeData saved = node.Save(null)[0];
+        Node.Data saved = node.Save(null)[0];
         RepeaterNode loaded = _loader.Load<RepeaterNode>(saved);
         Assert.Equal(3, loaded.Times);
     }

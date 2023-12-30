@@ -11,7 +11,7 @@ namespace GBT.Sharp.Core;
 /// The TreeRuntime is independent to the BehaviorTree's static data and is serialized
 /// separately.
 /// </summary>
-public class TreeRuntime {
+public partial class TreeRuntime {
     public BehaviorTree Tree { get; init; }
     public Trace Trace { get; } = new();
     private Node? _runningNode;
@@ -71,19 +71,5 @@ public class TreeRuntime {
     }
     public void Load(ReadOnlyMemory<byte> buffer) {
         ReadSavedData(MessagePackSerializer.Deserialize<Data>(buffer));
-    }
-
-
-    /// <summary>
-    /// Persistable data for the TreeRuntime.
-    /// </summary>
-    [MessagePackObject(true)]
-    public record struct Data(string TreeID, string? RunningNodeID) {
-        public NodeContext.Data[] NodeContexts { get; set; } = Array.Empty<NodeContext.Data>();
-        public static Data From(TreeRuntime runtime) {
-            return new(runtime.Tree.ID, runtime.RunningNode?.ID) {
-                NodeContexts = runtime.NodeContexts.Values.Select(NodeContext.Data.From).ToArray()
-            };
-        }
     }
 }

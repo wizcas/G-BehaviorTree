@@ -1,10 +1,8 @@
-using GBT.Sharp.Core.Exceptions;
 using GBT.Sharp.Core.Nodes;
-using MessagePack;
 
 namespace GBT.Sharp.Core;
 
-public class NodeContext {
+public partial class NodeContext {
     public Node Node { get; set; }
 
     private NodeState _state;
@@ -28,23 +26,6 @@ public class NodeContext {
     }
     protected virtual void ReadSavedData(Data data) {
         State = data.State;
-    }
-
-
-    [MessagePackObject(true)]
-    public record struct Data(string NodeID, NodeState State) {
-        public static Data From(NodeContext context) {
-            return new(context.Node.ID, context.State);
-        }
-        public static NodeContext Load(Data data, IDictionary<string, Node> loadedNodes) {
-            if (loadedNodes.TryGetValue(data.NodeID, out Node? node)) {
-                NodeContext context = node.Context;
-                context.ReadSavedData(data);
-                return context;
-            } else {
-                throw new NodeNotFoundException(data.NodeID, "failed loading node context");
-            }
-        }
     }
 }
 

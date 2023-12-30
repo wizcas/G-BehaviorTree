@@ -193,12 +193,12 @@ public class RepeaterNode : DecoratorNode<RepeaterNode> {
             State = NodeState.Success;
         }
     }
-    internal override NodeData WriteSavedData() {
-        NodeData data = base.WriteSavedData();
+    public override Data WriteSavedData() {
+        Data data = base.WriteSavedData();
         data.Extra[nameof(Times)] = Times;
         return data;
     }
-    internal override void ReadSaveData(NodeData data) {
+    public override void ReadSaveData(Data data) {
         base.ReadSaveData(data);
         if (data.Extra.TryGetValue(nameof(Times), out var times)
             && times is not null) {
