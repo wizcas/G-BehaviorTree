@@ -1,4 +1,4 @@
-﻿namespace GBT.Sharp.Core.Nodes;
+﻿namespace GBT.Nodes;
 
 /// <summary>
 /// This is the base class for all composite nodes who manages its children in a list.

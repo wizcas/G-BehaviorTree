@@ -1,5 +1,5 @@
-using GBT.Sharp.Core.Nodes;
-using GBT.Sharp.Core.Serialization;
+using GBT.Nodes;
+using GBT.Serialization;
 using System.Collections;
 using Xunit.Abstractions;
 

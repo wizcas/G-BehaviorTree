@@ -1,6 +1,6 @@
 ﻿using NanoidDotNet;
 
-namespace GBT.Sharp.Core.Nodes;
+namespace GBT.Nodes;
 
 /// <summary>
 /// The base class of all Behavior Tree Nodes, which defines

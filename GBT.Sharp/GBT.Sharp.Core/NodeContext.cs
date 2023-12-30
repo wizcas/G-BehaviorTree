@@ -1,6 +1,6 @@
-using GBT.Sharp.Core.Nodes;
+using GBT.Nodes;
 
-namespace GBT.Sharp.Core;
+namespace GBT;
 
 public partial class NodeContext {
     public GBTNode Node { get; set; }

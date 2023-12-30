@@ -1,4 +1,4 @@
-﻿namespace GBT.Sharp.Core.Nodes;
+﻿namespace GBT.Nodes;
 
 /// <summary>
 /// CallbackNode can be attached with callback functions to its lifecycle events,

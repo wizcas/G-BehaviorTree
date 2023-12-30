@@ -1,7 +1,7 @@
-using GBT.Sharp.Core.Nodes;
+using GBT.Nodes;
 using MessagePack;
 
-namespace GBT.Sharp.Core;
+namespace GBT;
 
 public partial class BehaviorTree {
     [MessagePackObject(true)]

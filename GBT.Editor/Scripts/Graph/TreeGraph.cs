@@ -1,5 +1,5 @@
-using GBT.Sharp.Core;
-using GBT.Sharp.Core.Nodes;
+using GBT;
+using GBT.Nodes;
 using Godot;
 using Godot.Collections;
 

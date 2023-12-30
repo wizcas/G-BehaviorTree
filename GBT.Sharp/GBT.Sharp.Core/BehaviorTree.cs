@@ -1,10 +1,10 @@
-﻿using GBT.Sharp.Core.Nodes;
-using GBT.Sharp.Core.Serialization;
+﻿using GBT.Nodes;
+using GBT.Serialization;
 using MessagePack;
 using NanoidDotNet;
 using System.Buffers;
 
-namespace GBT.Sharp.Core;
+namespace GBT;
 
 public partial class BehaviorTree {
     public static TreeLogger Logger { get; } = new TreeLogger();

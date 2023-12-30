@@ -1,4 +1,4 @@
-﻿namespace GBT.Sharp.Core.Nodes;
+﻿namespace GBT.Nodes;
 
 public enum NodeState {
     Unvisited,

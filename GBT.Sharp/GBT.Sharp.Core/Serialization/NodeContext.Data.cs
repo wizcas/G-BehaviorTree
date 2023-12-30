@@ -1,8 +1,8 @@
-using GBT.Sharp.Core.Exceptions;
-using GBT.Sharp.Core.Nodes;
+using GBT.Exceptions;
+using GBT.Nodes;
 using MessagePack;
 
-namespace GBT.Sharp.Core;
+namespace GBT;
 
 public partial class NodeContext {
     [MessagePackObject(true)]

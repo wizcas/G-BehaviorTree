@@ -1,9 +1,9 @@
-﻿using GBT.Sharp.Core.Diagnostics;
-using GBT.Sharp.Core.Nodes;
+﻿using GBT.Diagnostics;
+using GBT.Nodes;
 using MessagePack;
 using System.Buffers;
 
-namespace GBT.Sharp.Core;
+namespace GBT;
 
 /// <summary>
 /// The runtime context of a Behavior Tree, which contains the tree that it belongs to,

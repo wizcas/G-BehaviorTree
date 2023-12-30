@@ -1,6 +1,6 @@
 using MessagePack;
 
-namespace GBT.Sharp.Core.Nodes;
+namespace GBT.Nodes;
 
 public partial class GBTNode {
     /// <summary>

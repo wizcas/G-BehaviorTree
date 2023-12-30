@@ -1,7 +1,7 @@
 using MessagePack;
 using System.Buffers;
 
-namespace GBT.Sharp.Core;
+namespace GBT;
 
 public partial class TreeRuntime {
     /// <summary>

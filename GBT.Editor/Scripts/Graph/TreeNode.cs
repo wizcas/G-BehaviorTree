@@ -1,4 +1,4 @@
-using GBT.Sharp.Core.Nodes;
+using GBT.Nodes;
 using Godot;
 
 [GlobalClass]

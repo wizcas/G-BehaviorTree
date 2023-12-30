@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace GBT.Sharp.Core.Nodes;
+namespace GBT.Nodes;
 
 /// <summary>
 /// A Decorator Node is a node that can have only one child.

@@ -1,6 +1,6 @@
-using GBT.Sharp.Core.Nodes;
+using GBT.Nodes;
 
-namespace GBT.Sharp.Core.Diagnostics;
+namespace GBT.Diagnostics;
 
 public class Pass {
     public record struct Footprint(GBTNode? Node, string Content) {

@@ -1,7 +1,7 @@
-﻿using GBT.Sharp.Core.Nodes;
+﻿using GBT.Nodes;
 using System.Diagnostics.Tracing;
 
-namespace GBT.Sharp.Core;
+namespace GBT;
 
 public record struct TreeLog(EventLevel Level, string Message, GBTNode? Node = null);
 

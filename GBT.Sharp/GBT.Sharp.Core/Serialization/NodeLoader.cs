@@ -1,6 +1,6 @@
-using GBT.Sharp.Core.Nodes;
+using GBT.Nodes;
 
-namespace GBT.Sharp.Core.Serialization;
+namespace GBT.Serialization;
 
 public class NodeLoader {
     private readonly Dictionary<string, GBTNode> _cache = new();
