@@ -14,12 +14,12 @@ namespace GBT.Sharp.Core;
 public partial class TreeRuntime {
     public BehaviorTree Tree { get; init; }
     public Trace Trace { get; } = new();
-    private Node? _runningNode;
+    private GBTNode? _runningNode;
     /// <summary>
     /// The node that is currently running if during a tick,
     /// or the node that will run next if the previous tick is finished.
     /// </summary>
-    public Node? RunningNode {
+    public GBTNode? RunningNode {
         get => _runningNode;
         set {
             if (_runningNode == value) {
@@ -47,10 +47,10 @@ public partial class TreeRuntime {
     }
     protected virtual void ReadSavedData(Data data) {
         NodeContexts.Clear();
-        IDictionary<string, Node> allNodes = Tree.Flatten().ToDictionary(n => n.ID);
+        IDictionary<string, GBTNode> allNodes = Tree.Flatten().ToDictionary(n => n.ID);
 
         if (!string.IsNullOrEmpty(data.RunningNodeID)
-            && allNodes.TryGetValue(data.RunningNodeID, out Node? runningNode)) {
+            && allNodes.TryGetValue(data.RunningNodeID, out GBTNode? runningNode)) {
             RunningNode = runningNode;
         } else {
             RunningNode = null;

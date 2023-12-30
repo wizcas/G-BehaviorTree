@@ -4,7 +4,7 @@
 /// CallbackNode can be attached with callback functions to its lifecycle events,
 /// which can be useful for testing or debugging.
 /// </summary>
-public class CallbackNode : Node {
+public class CallbackNode : GBTNode {
     public Action<CallbackNode>? OnInitialize { get; set; }
     public Action<CallbackNode>? OnTick { get; set; }
     public Action<CallbackNode>? OnCleanUp { get; set; }

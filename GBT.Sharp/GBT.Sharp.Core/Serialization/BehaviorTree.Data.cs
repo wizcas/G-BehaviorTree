@@ -7,6 +7,6 @@ public partial class BehaviorTree {
     [MessagePackObject(true)]
     public record struct Data(
         string ID,
-        Node.Data[] Nodes,
+        GBTNode.Data[] Nodes,
         string? RootID);
 }

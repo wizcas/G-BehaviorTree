@@ -6,8 +6,8 @@
 /// sequential execution or random access.
 /// </summary>
 public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNode {
-    private readonly List<Node> _children = new();
-    public IEnumerable<Node> Children => _children;
+    private readonly List<GBTNode> _children = new();
+    public IEnumerable<GBTNode> Children => _children;
 
     public ListCompositeNode(string id, string name) : base(id, name) {
     }
@@ -24,7 +24,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         BehaviorTree.Logger.Info("initialized", this);
     }
     protected sealed override void DoTick() {
-        Node? child = Context.CurrentChild;
+        GBTNode? child = Context.CurrentChild;
         if (child is null) {
             Runtime?.Trace.Add(this, $"no current child");
             State = NodeState.Failure;
@@ -33,7 +33,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         }
         child.Tick();
     }
-    public void AfterChildExit(Node child) {
+    public void AfterChildExit(GBTNode child) {
         if (child != Context.CurrentChild) {
             Runtime?.Trace.Add(this, $"skip: child exit");
             BehaviorTree.Logger.Warn($"skip: try to exit child {child} but the current child is {Context.CurrentChild}", child);
@@ -42,14 +42,14 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         ProceedChildState(child);
         TryExit();
     }
-    protected abstract void ProceedChildState(Node child);
+    protected abstract void ProceedChildState(GBTNode child);
     protected override void OnContextChanged() {
         base.OnContextChanged();
         if (State == NodeState.Running) {
             BehaviorTree.Logger.Info($"running node is reset because context is updated", this);
             Reset();
         }
-        foreach (Node child in _children) {
+        foreach (GBTNode child in _children) {
             child.Runtime = Runtime;
         }
     }
@@ -59,7 +59,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
     }
 
 
-    public IParentNode AddChild(Node child) {
+    public IParentNode AddChild(GBTNode child) {
         if (!_children.Contains(child)) {
             _children.Add(child);
             child.Runtime = Runtime;
@@ -71,15 +71,15 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         return this;
     }
 
-    public IParentNode AddChildren(params Node[] children) {
-        foreach (Node child in children) {
+    public IParentNode AddChildren(params GBTNode[] children) {
+        foreach (GBTNode child in children) {
             AddChild(child);
         }
         return this;
     }
 
 
-    public bool RemoveChild(Node child) {
+    public bool RemoveChild(GBTNode child) {
         var removed = _children.Remove(child);
         if (removed) {
             child.Runtime = null;
@@ -90,14 +90,14 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
 
     public class Ctx : NodeContext<ListCompositeNode> {
         private int _currentChildIndex = -1;
-        private List<Node> Children => Node._children;
-        public Node? CurrentChild {
+        private List<GBTNode> Children => Node._children;
+        public GBTNode? CurrentChild {
             get {
                 if (_currentChildIndex < 0 || _currentChildIndex >= Children.Count) {
                     return null;
                 }
 
-                Node? child = Children[_currentChildIndex];
+                GBTNode? child = Children[_currentChildIndex];
                 if (child.IsDisabled) {
                     // if the current child is disabled, recursively get the next enabled child or quit
                     child = CurrentChild = PeekNextChild();
@@ -121,22 +121,22 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         public void ResetCurrentChild() {
             CurrentChild = null;
         }
-        public Node? PeekNextChild() {
+        public GBTNode? PeekNextChild() {
             var nextIndex = _currentChildIndex + 1;
-            Node? nextChild = null;
+            GBTNode? nextChild = null;
             while (nextIndex < Children.Count && (nextChild = Children[nextIndex]).IsDisabled) {
                 nextIndex++;
             };
             return nextIndex >= Children.Count ? null : nextChild;
         }
-        public Node? GoToNextChild() {
+        public GBTNode? GoToNextChild() {
             CurrentChild = PeekNextChild();
             return CurrentChild;
         }
     }
 }
 
-public abstract class ListCompositeNode<TNode> : ListCompositeNode, IParentNode<TNode> where TNode : Node {
+public abstract class ListCompositeNode<TNode> : ListCompositeNode, IParentNode<TNode> where TNode : GBTNode {
     public new IEnumerable<TNode> Children => base.Children.Cast<TNode>();
     public ListCompositeNode(string id, string name) : base(id, name) {
     }
@@ -147,11 +147,11 @@ public abstract class ListCompositeNode<TNode> : ListCompositeNode, IParentNode<
     protected ListCompositeNode() {
     }
 
-    public new TNode AddChild(Node child) {
+    public new TNode AddChild(GBTNode child) {
         return base.AddChild(child).Cast<TNode>();
     }
 
-    public new TNode AddChildren(params Node[] children) {
+    public new TNode AddChildren(params GBTNode[] children) {
         return base.AddChildren(children).Cast<TNode>();
     }
 }
@@ -170,7 +170,7 @@ public class SequenceNode : ListCompositeNode<SequenceNode> {
     public SequenceNode(string id, string name) : base(id, name) {
     }
 
-    protected override void ProceedChildState(Node child) {
+    protected override void ProceedChildState(GBTNode child) {
         switch (child.State) {
             case NodeState.Running:
                 State = NodeState.Running;
@@ -203,7 +203,7 @@ public class SelectorNode : ListCompositeNode<SelectorNode> {
     public SelectorNode(string id, string name) : base(id, name) {
     }
 
-    protected override void ProceedChildState(Node child) {
+    protected override void ProceedChildState(GBTNode child) {
         switch (child.State) {
             case NodeState.Running:
                 State = NodeState.Running;

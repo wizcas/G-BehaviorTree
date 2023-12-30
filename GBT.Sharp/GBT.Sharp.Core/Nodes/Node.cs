@@ -6,13 +6,13 @@ namespace GBT.Sharp.Core.Nodes;
 /// The base class of all Behavior Tree Nodes, which defines
 /// the basic properties, methods, and behaviors of a node.
 /// </summary>
-public abstract partial class Node {
+public abstract partial class GBTNode {
     public string ID { get; }
     public string Name { get; set; }
 
 
-    private Node? _parent;
-    public Node? Parent { get => _parent; set => SetParent(value); }
+    private GBTNode? _parent;
+    public GBTNode? Parent { get => _parent; set => SetParent(value); }
 
     public bool IsDisabled { get; set; }
 
@@ -38,14 +38,14 @@ public abstract partial class Node {
     }
     protected bool CanExit => Runtime?.RunningNode == this && State != NodeState.Running;
 
-    public Node(string id, string name) {
+    public GBTNode(string id, string name) {
         ID = id;
         Name = name;
         Context = CreateContext();
         Reset();
     }
-    public Node(string name) : this(Nanoid.Generate(), name) { }
-    public Node() : this("") {
+    public GBTNode(string name) : this(Nanoid.Generate(), name) { }
+    public GBTNode() : this("") {
         Name = $"New {GetType().Name}";
     }
 
@@ -127,13 +127,13 @@ public abstract partial class Node {
             State = NodeState.Unvisited;
         }
     }
-    public T Cast<T>() where T : Node {
+    public T Cast<T>() where T : GBTNode {
         return (T)this;
     }
 
     protected virtual void OnContextChanged() { }
 
-    private void SetParent(Node? parent) {
+    private void SetParent(GBTNode? parent) {
         if (parent == Parent) {
             return;
         }
@@ -153,11 +153,11 @@ public abstract partial class Node {
         return $"{Name} ({ID}/{GetType().Name})";
     }
 
-    public IEnumerable<Node> Flatten() {
+    public IEnumerable<GBTNode> Flatten() {
         yield return this;
         if (this is IParentNode parent) {
-            foreach (Node child in parent.Children) {
-                foreach (Node inner in child.Flatten()) {
+            foreach (GBTNode child in parent.Children) {
+                foreach (GBTNode inner in child.Flatten()) {
                     yield return inner;
                 }
             }
@@ -168,7 +168,7 @@ public abstract partial class Node {
         savedNodes ??= new();
         savedNodes.Add(WriteSavedData());
         if (this is IParentNode parent) {
-            foreach (Node child in parent.Children) {
+            foreach (GBTNode child in parent.Children) {
                 child.Save(savedNodes);
             }
         }
@@ -183,7 +183,7 @@ public abstract partial class Node {
 
 }
 
-public abstract class Node<TContext> : Node where TContext : NodeContext {
+public abstract class Node<TContext> : GBTNode where TContext : NodeContext {
     protected Node() {
     }
 

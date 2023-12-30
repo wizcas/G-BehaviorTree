@@ -12,14 +12,14 @@ public class SaveNodeTests(ITestOutputHelper output) {
     [Theory]
     [ClassData(typeof(NodeHierarchyGeneartor))]
     public void ShouldSaveLoadHierarchy(NodeHierarchyGeneartor.TestCase testCase) {
-        Node[] testedNodes = testCase.Nodes;
+        GBTNode[] testedNodes = testCase.Nodes;
         // Save
-        List<Node.Data> saves = [];
+        List<GBTNode.Data> saves = [];
         testCase.Root.Save(saves);
         Assert.Equal(testedNodes.Length, saves.Count);
         var index = 0;
-        foreach (Node node in testedNodes) {
-            Node.Data save = saves[index++];
+        foreach (GBTNode node in testedNodes) {
+            GBTNode.Data save = saves[index++];
             // Assert basic data
             Assert.Equivalent(new {
                 NodeType = node.GetType(),
@@ -33,10 +33,10 @@ public class SaveNodeTests(ITestOutputHelper output) {
             }
         }
         // Load
-        Node[] loads = saves.Select(_loader.Load).ToArray();
+        GBTNode[] loads = saves.Select(_loader.Load).ToArray();
         index = 0;
-        foreach (Node node in testedNodes) {
-            Node load = loads[index++];
+        foreach (GBTNode node in testedNodes) {
+            GBTNode load = loads[index++];
             // Assert basic data
             Assert.Equivalent(new {
                 node.ID,
@@ -62,25 +62,25 @@ public class SaveNodeTests(ITestOutputHelper output) {
     [Fact]
     public void ShouldSaveRepeatTimes() {
         var node = new RepeaterNode("rep") { Times = 3 };
-        Node.Data saved = node.Save(null)[0];
+        GBTNode.Data saved = node.Save(null)[0];
         RepeaterNode loaded = _loader.Load<RepeaterNode>(saved);
         Assert.Equal(3, loaded.Times);
     }
 }
 
 public class NodeHierarchyGeneartor : IEnumerable<object[]> {
-    public record TestCase(Node Root) {
-        public Node[] Nodes {
+    public record TestCase(GBTNode Root) {
+        public GBTNode[] Nodes {
             get {
-                List<Node> nodes = [];
+                List<GBTNode> nodes = [];
                 Collect(Root, nodes);
                 return [.. nodes];
             }
         }
-        private static void Collect(Node node, List<Node> nodes) {
+        private static void Collect(GBTNode node, List<GBTNode> nodes) {
             nodes.Add(node);
             if (node is IParentNode parent) {
-                foreach (Node child in parent.Children) {
+                foreach (GBTNode child in parent.Children) {
                     Collect(child, nodes);
                 }
             }
