@@ -42,6 +42,13 @@ public abstract class GBTNodeDrawer(TreeGraphNode graphNode) {
         return GetSlots().Select(slot => new SlotConnection(GraphNode.Name, slot.OutPortIndex, slot.TargetNodeName, ParentSlotIndex));
     }
     public abstract bool RequestSlotConnection(long fromPort, string toNodeName, long toPort);
+
+    public ISlot? FindSlotByInPort(long port) {
+        return GetSlots().FirstOrDefault(slot => slot.InPortIndex == port);
+    }
+    public ISlot? FindSlotByOutPort(long port) {
+        return GetSlots().FirstOrDefault(slot => slot.OutPortIndex == port);
+    }
 }
 
 public abstract class GBTNodeDrawer<TDataNode> : GBTNodeDrawer where TDataNode : GBTNode {

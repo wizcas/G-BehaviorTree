@@ -61,13 +61,16 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
         }
 
         TreeGraphNode? toNode = GraphNode?.Graph?.FindGraphNode(toNodeName);
-        if (toNode == null) {
-            // If there's no target node, empty this slot
+        if (toNode == null
+            || toPort < 0
+            || toNode.GetSlotTypeLeft(toNode.Drawer?.FindSlotByInPort(toPort)?.SlotIndex ?? -1) != SlotMetadata.Node.Type) {
+            // If the target node or port is invalid, empty this slot
             // If the slot is already empty, do nothing
             if (thisSlot.DataChild == null) {
                 return false;
             }
             DataNode?.RemoveChild(thisSlot.DataChild);
+            thisSlot.DataChild = null;
             return true;
         }
 
@@ -97,9 +100,5 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
         }
         thisSlot.DataChild = toNode.DataNode;
         return true;
-    }
-
-    private ISlot? FindSlotByOutPort(long port) {
-        return GetSlots().FirstOrDefault(slot => slot.OutPortIndex == port);
     }
 }

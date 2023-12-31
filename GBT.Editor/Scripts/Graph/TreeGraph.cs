@@ -15,6 +15,7 @@ public partial class TreeGraph : GraphEdit {
         InitializeContextMenu();
         PopupRequest += OnRequestContextMenu;
         ConnectionRequest += OnConnectionRequest;
+        ConnectionToEmpty += OnConnectionToEmpty;
 
         // Clean up all temporary data
         foreach (Node? child in FindChildren("*", "TreeGraphNode")) {
@@ -39,6 +40,15 @@ public partial class TreeGraph : GraphEdit {
         if (sourceNode == null) return;
 
         var shouldUpdate = sourceNode.RequestSlotConnection(fromPort, toNode, toPort);
+        if (shouldUpdate) {
+            RefreshConnections();
+        }
+    }
+
+    private void OnConnectionToEmpty(StringName fromNode, long fromPort, Vector2 releasePosition) {
+        TreeGraphNode? sourceNode = FindGraphNode(fromNode);
+        if (sourceNode == null) return;
+        var shouldUpdate = sourceNode.RequestSlotConnection(fromPort, string.Empty, -1);
         if (shouldUpdate) {
             RefreshConnections();
         }
