@@ -62,13 +62,15 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
     public IParentNode AddChild(GBTNode child) {
         if (!_children.Contains(child)) {
             _children.Add(child);
-            child.Runtime = Runtime;
         }
-        if (child.Parent != this) {
-            // In case AddChild is not called from child.SetParent()
-            child.Parent = this;
-        }
+        AttachChildToHierarchy(child);
         return this;
+    }
+
+    protected void AttachChildToHierarchy(GBTNode child) {
+        child.Runtime = Runtime;
+        // In case Child is not added by child.SetParent()
+        child.Parent = this;
     }
 
     public IParentNode AddChildren(params GBTNode[] children) {
@@ -78,7 +80,6 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         return this;
     }
 
-
     public bool RemoveChild(GBTNode child) {
         var removed = _children.Remove(child);
         if (removed) {
@@ -87,6 +88,24 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         return removed;
     }
 
+    public int MoveChild(GBTNode child, int toIndex) {
+        toIndex = Math.Max(0, Math.Min(toIndex, _children.Count - 1));
+        var oldIndex = _children.IndexOf(child);
+        if (oldIndex == toIndex) {
+            return toIndex;
+        }
+        if (oldIndex > -1) {
+            _children.RemoveAt(oldIndex);
+        }
+        if (toIndex >= _children.Count) {
+            AddChild(child);
+            toIndex = _children.Count - 1;
+        } else {
+            _children.Insert(toIndex, child);
+        }
+        AttachChildToHierarchy(child);
+        return toIndex;
+    }
 
     public class Ctx : NodeContext<ListCompositeNode> {
         private int _currentChildIndex = -1;

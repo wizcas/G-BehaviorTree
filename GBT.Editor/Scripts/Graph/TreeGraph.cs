@@ -2,6 +2,7 @@ using GBT;
 using GBT.Nodes;
 using Godot;
 using Godot.Collections;
+using System.Linq;
 
 public partial class TreeGraph : GraphEdit {
     private PopupMenu? _contextMenu;
@@ -67,9 +68,20 @@ public partial class TreeGraph : GraphEdit {
                 Node = testChild,
             };
             AddChild(childGraphNode);
-            ConnectNode(testRoot.ID, i, testChild.ID, 0);
+            //ConnectNode(testRoot.ID, i, testChild.ID, 0);
             i++;
         }
-        ArrangeNodes(); // FIXME: better positioning algorithm
+        Callable.From(ArrangeNodes).CallDeferred(); // FIXME: better positioning algorithm
+        Callable.From(ReconnectNodes).CallDeferred(); // FIXME: better positioning algorithm
+    }
+
+    public void ReconnectNodes() {
+        ClearConnections();
+        foreach (TreeGraphNode graphNode in GetChildren().Where(child => child is TreeGraphNode node && node.Drawer != null).Cast<TreeGraphNode>()) {
+            if (graphNode.Node == null) continue;
+            foreach (SlotConnection conn in graphNode.Drawer!.GetSlotConnections()) {
+                ConnectNode(conn.FromNode, conn.FromPort, conn.ToNode, conn.ToPort);
+            }
+        }
     }
 }

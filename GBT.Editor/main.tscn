@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://e7nyx47xy7c3"]
 
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraph.cs" id="1_kvu8r"]
-[ext_resource type="Script" path="res://Scripts/Graph/TreeGraphNode.cs" id="2_ghf02"]
+[ext_resource type="Script" path="res://Scripts/Graph/Nodes/TreeGraphNode.cs" id="2_ghf02"]
 [ext_resource type="PackedScene" uid="uid://b7un6qlk4ikgk" path="res://Controls/ChildNodeEntry.tscn" id="3_yehqu"]
 
 [node name="Control" type="Control"]
@@ -19,17 +19,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-scroll_offset = Vector2(-40, -40)
 script = ExtResource("1_kvu8r")
 
 [node name="ContextMenu" type="PopupMenu" parent="TreeGraph"]
 
 [node name="TreeGraphNode" type="GraphNode" parent="TreeGraph"]
 layout_mode = 0
-offset_left = 139.0
-offset_top = 176.0
-offset_right = 373.0
-offset_bottom = 262.0
+offset_left = 99.0
+offset_top = 136.0
+offset_right = 333.0
+offset_bottom = 222.0
 mouse_filter = 1
 position_offset = Vector2(99, 136)
 title = "aaaaaaaaaaaaa"
