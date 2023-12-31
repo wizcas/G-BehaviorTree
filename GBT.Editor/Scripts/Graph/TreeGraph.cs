@@ -70,5 +70,6 @@ public partial class TreeGraph : GraphEdit {
             ConnectNode(testRoot.ID, i, testChild.ID, 0);
             i++;
         }
+        ArrangeNodes(); // FIXME: better positioning algorithm
     }
 }

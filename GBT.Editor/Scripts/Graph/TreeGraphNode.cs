@@ -36,20 +36,26 @@ public partial class TreeGraphNode : GraphNode {
         var slotIndex = 1;
         switch (Node) {
             case ListCompositeNode listComposite:
-                foreach (GBTNode child in listComposite.Children) {
-                    AddChild(new Label() {
-                        Name = $"Slot {slotIndex}",
-                        Text = child.Name,
-                    });
-                    SetSlot(slotIndex,
-                        false, SlotMetadata.Node.Type, SlotMetadata.Node.Color,
-                        true, SlotMetadata.Node.Type, SlotMetadata.Node.Color);
-                    slotIndex++;
-                }
+                DrawListCompositeNode(listComposite, ref slotIndex);
                 break;
             default:
                 AddChild(new Label() { Text = "Unsupported node type" });
                 break;
+        }
+    }
+
+    private void DrawListCompositeNode(ListCompositeNode node, ref int slotIndex) {
+        var listIndex = 0;
+        PackedScene scene = GD.Load<PackedScene>("res://Controls/ChildNodeEntry.tscn");
+        foreach (GBTNode child in node.Children) {
+            ChildNodeEntry entry = scene.Instantiate<ChildNodeEntry>();
+            entry.Index = listIndex++;
+            entry.Child = child;
+            AddChild(entry);
+            SetSlot(slotIndex,
+                false, SlotMetadata.Node.Type, SlotMetadata.Node.Color,
+                true, SlotMetadata.Node.Type, SlotMetadata.Node.Color);
+            slotIndex++;
         }
     }
 }
