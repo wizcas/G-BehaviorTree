@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://e7nyx47xy7c3"]
+[gd_scene load_steps=3 format=3 uid="uid://e7nyx47xy7c3"]
 
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraph.cs" id="1_kvu8r"]
+[ext_resource type="Script" path="res://Scripts/Graph/TreeGraphNode.cs" id="2_ghf02"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -21,3 +22,37 @@ scroll_offset = Vector2(-40, -40)
 script = ExtResource("1_kvu8r")
 
 [node name="ContextMenu" type="PopupMenu" parent="TreeGraph"]
+
+[node name="TreeGraphNode" type="GraphNode" parent="TreeGraph"]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 49.0
+offset_bottom = 95.0
+mouse_filter = 1
+title = "aaaaaaaaaaaaa"
+slot/0/left_enabled = false
+slot/0/left_type = 0
+slot/0/left_color = Color(1, 1, 1, 1)
+slot/0/left_icon = null
+slot/0/right_enabled = false
+slot/0/right_type = 0
+slot/0/right_color = Color(1, 1, 1, 1)
+slot/0/right_icon = null
+slot/0/draw_stylebox = true
+script = ExtResource("2_ghf02")
+
+[node name="ChildNodeEntry" type="HBoxContainer" parent="TreeGraph/TreeGraphNode"]
+layout_mode = 2
+
+[node name="ChildName" type="Label" parent="TreeGraph/TreeGraphNode/ChildNodeEntry"]
+layout_mode = 2
+text = "Child Name"
+
+[node name="Up" type="Button" parent="TreeGraph/TreeGraphNode/ChildNodeEntry"]
+layout_mode = 2
+text = "🔼"
+
+[node name="Down" type="Button" parent="TreeGraph/TreeGraphNode/ChildNodeEntry"]
+layout_mode = 2
+text = "🔽"

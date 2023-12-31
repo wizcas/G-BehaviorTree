@@ -13,6 +13,11 @@ public partial class TreeGraph : GraphEdit {
     public override void _Ready() {
         InitializeContextMenu();
         GuiInput += OnGuiInput;
+
+        // Clean up all temporary data
+        foreach (Node? child in FindChildren("*", "TreeGraphNode")) {
+            RemoveChild(child);
+        }
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -48,13 +53,22 @@ public partial class TreeGraph : GraphEdit {
     }
 
     private void CreateTestNode() {
-        var testNode = new SequenceNode("Seq.");
-        var node = new TreeNode() {
-            Name = "TestNode",
-            Title = "Empty test node",
+        SequenceNode testRoot = new SequenceNode("Seq.").AddChildren(
+            new CallbackNode("cb1"),
+            new CallbackNode("cb2"));
+        var rootGraphNode = new TreeGraphNode() {
             PositionOffset = (GetViewport().GetMousePosition() + ScrollOffset) / Zoom,
-            Node = testNode,
+            Node = testRoot,
         };
-        AddChild(node);
+        AddChild(rootGraphNode);
+        var i = 0;
+        foreach (GBTNode testChild in testRoot.Children) {
+            var childGraphNode = new TreeGraphNode() {
+                Node = testChild,
+            };
+            AddChild(childGraphNode);
+            ConnectNode(testRoot.ID, i, testChild.ID, 0);
+            i++;
+        }
     }
 }

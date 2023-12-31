@@ -137,7 +137,6 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
 }
 
 public abstract class ListCompositeNode<TNode> : ListCompositeNode, IParentNode<TNode> where TNode : GBTNode {
-    public new IEnumerable<TNode> Children => base.Children.Cast<TNode>();
     public ListCompositeNode(string id, string name) : base(id, name) {
     }
 
