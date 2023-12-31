@@ -7,11 +7,20 @@ using System.Linq;
 public record struct SlotConnection(string FromNode, int FromPort, string ToNode, int ToPort) {
     public readonly static SlotConnection Empty = new("", -1, "", -1);
 }
+public interface ISlot {
+    public string OwnerNodeName { get; }
+    public string TargetNodeName { get; }
+    public int SlotIndex { get; }
+    public int InPortIndex { get; }
+    public int OutPortIndex { get; }
+    public bool IsValid { get; }
+}
 
 public abstract class GBTNodeDrawer(TreeGraphNode graphNode) {
     public const int ParentSlotIndex = 0;
     public const int SlotStartIndex = 1;
     public TreeGraphNode GraphNode { get; } = graphNode;
+    public GBTNode? DataNode => GraphNode.DataNode;
 
     public virtual void DrawSlots(GBTNode node) {
         if (GraphNode == null) {
@@ -25,26 +34,31 @@ public abstract class GBTNodeDrawer(TreeGraphNode graphNode) {
 
     }
 
-    public virtual IEnumerable<SlotConnection> GetSlotConnections() {
-        return GraphNode.GetChildren().Where(child => child is ChildNodeSlot slot && slot.Child != null).Cast<ChildNodeSlot>()
-            .Select(slot => new SlotConnection(GraphNode.Name, slot.ChildIndex, slot.Child!.ID, ParentSlotIndex));
+    public IEnumerable<ISlot> GetSlots() {
+        return GraphNode.GetChildren().Where(child => child is ISlot slot && slot.IsValid).Cast<ISlot>();
     }
+
+    public virtual IEnumerable<SlotConnection> GetSlotConnections() {
+        return GetSlots().Select(slot => new SlotConnection(GraphNode.Name, slot.OutPortIndex, slot.TargetNodeName, ParentSlotIndex));
+    }
+    public abstract bool RequestSlotConnection(long fromPort, string toNodeName, long toPort);
 }
 
-public abstract class GBTNodeDrawer<TNode> : GBTNodeDrawer where TNode : GBTNode {
+public abstract class GBTNodeDrawer<TDataNode> : GBTNodeDrawer where TDataNode : GBTNode {
+    public new TDataNode? DataNode => GraphNode.DataNode as TDataNode;
     public GBTNodeDrawer(TreeGraphNode graphNode) : base(graphNode) { }
 
     public sealed override void DrawSlots(GBTNode node) {
         base.DrawSlots(node);
-        if (node is not TNode typedNode) {
+        if (node is not TDataNode typedNode) {
             GraphNode.AddChild(new Label() {
                 Name = "WrongGBTNodeType",
-                Text = $"[REQUIRE {typeof(TNode).Name}]",
+                Text = $"[REQUIRE {typeof(TDataNode).Name}]",
             });
         } else {
             var slotIndex = SlotStartIndex;
             DrawSlots(typedNode, ref slotIndex);
         }
     }
-    public abstract void DrawSlots(TNode node, ref int slotIndex);
+    public abstract void DrawSlots(TDataNode node, ref int slotIndex);
 }

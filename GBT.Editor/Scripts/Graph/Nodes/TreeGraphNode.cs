@@ -7,14 +7,14 @@ using System.Collections.Generic;
 public partial class TreeGraphNode : GraphNode {
     public TreeGraph? Graph { get; private set; }
 
-    private GBTNode? _node;
-    public GBTNode? Node {
-        get => _node;
+    private GBTNode? _dataNode;
+    public GBTNode? DataNode {
+        get => _dataNode;
         set {
-            if (_node == value) return;
-            GBTNode? oldNode = _node;
-            _node = value;
-            UpdateNode(oldNode?.GetType() == _node?.GetType());
+            if (_dataNode == value) return;
+            GBTNode? oldNode = _dataNode;
+            _dataNode = value;
+            UpdateNode(oldNode?.GetType() == _dataNode?.GetType());
         }
     }
     public GBTNodeDrawer? Drawer { get; private set; }
@@ -35,19 +35,24 @@ public partial class TreeGraphNode : GraphNode {
     private void UpdateNode(bool shouldUpdateDrawer) {
         ClearAllSlots();
 
-        Name = Node?.ID ?? "EmptyGraphNode";
-        Title = Node?.Name ?? "(No Node)";
+        Name = DataNode?.ID ?? "EmptyGraphNode";
+        Title = DataNode?.Name ?? "(No Node)";
 
-        if (Node == null) return;
+        if (DataNode == null) return;
         if (Drawer == null || shouldUpdateDrawer) {
             // Create graph slot drawer by GBT Node types
-            if (NodeDrawerMap.TryGetValue(Node.GetType(), out Func<TreeGraphNode, GBTNodeDrawer>? drawerFactory)) {
+            if (NodeDrawerMap.TryGetValue(DataNode.GetType(), out Func<TreeGraphNode, GBTNodeDrawer>? drawerFactory)) {
                 Drawer = drawerFactory(this);
             } else {
                 Drawer = new UnknownNodeDrawer(this);
             }
         }
-        Drawer.DrawSlots(Node);
+        Drawer.DrawSlots(DataNode);
+    }
+
+    public bool RequestSlotConnection(long fromPort, string toNodeName, long toPort) {
+        if (Drawer == null) return false;
+        return Drawer.RequestSlotConnection(fromPort, toNodeName, toPort);
     }
 }
 

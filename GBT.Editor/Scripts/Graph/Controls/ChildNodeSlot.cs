@@ -2,7 +2,7 @@ using GBT.Nodes;
 using Godot;
 
 [GlobalClass]
-public partial class ChildNodeSlot : Control {
+public partial class ChildNodeSlot : Control, ISlot {
     #region Node GUI
     [Export] public Label? LabelNodeIndex { get; set; }
     [Export] public Label? LabelChildName { get; set; }
@@ -17,15 +17,23 @@ public partial class ChildNodeSlot : Control {
     private int _index;
     private GBTNode? _child;
 
+    public string OwnerNodeName => GraphNode.Name;
+    public string TargetNodeName => DataChild?.ID ?? string.Empty;
     public int SlotIndex => GetIndex();
     public int ChildIndex => SlotIndex - 1;
-    public GBTNode? Child {
+    public int InPortIndex => -1;
+    public int OutPortIndex => ChildIndex;
+    public bool IsValid => true;
+
+    public GBTNode? DataChild {
         get => _child;
         set {
             _child = value;
             UpdateGUI();
         }
     }
+
+
 
     #endregion
 

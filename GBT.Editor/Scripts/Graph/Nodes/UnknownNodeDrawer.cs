@@ -10,4 +10,8 @@ public class UnknownNodeDrawer : GBTNodeDrawer {
             Text = "Unsupported node type",
         });
     }
+
+    public override bool RequestSlotConnection(long fromPort, string toNodeName, long toPort) {
+        return false;
+    }
 }

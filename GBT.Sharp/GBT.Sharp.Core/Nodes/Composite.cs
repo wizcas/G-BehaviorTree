@@ -103,8 +103,15 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         } else {
             _children.Insert(toIndex, child);
         }
+        // Make sure the moved child is attached to this GBTNode if otherwise
         AttachChildToHierarchy(child);
         return toIndex;
+    }
+
+    public void SwitchChild(int a, int b) {
+        GBTNode tmp = _children[a];
+        _children[a] = _children[b];
+        _children[b] = tmp;
     }
 
     public class Ctx : NodeContext<ListCompositeNode> {

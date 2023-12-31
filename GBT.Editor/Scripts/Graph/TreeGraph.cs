@@ -13,7 +13,8 @@ public partial class TreeGraph : GraphEdit {
     // Called when the node enters the scene tree for the first time.
     public override void _Ready() {
         InitializeContextMenu();
-        GuiInput += OnGuiInput;
+        PopupRequest += OnRequestContextMenu;
+        ConnectionRequest += OnConnectionRequest;
 
         // Clean up all temporary data
         foreach (Node? child in FindChildren("*", "TreeGraphNode")) {
@@ -25,14 +26,21 @@ public partial class TreeGraph : GraphEdit {
     public override void _Process(double delta) {
     }
 
-    private void OnGuiInput(InputEvent @event) {
-        if (@event is InputEventMouseButton mouseButton) {
-            GD.Print("mouse button:", mouseButton.ButtonIndex, mouseButton.Pressed);
-            if (mouseButton.ButtonIndex == MouseButton.Right && mouseButton.Pressed && _contextMenu != null) {
-                Vector2 mousePos = GetLocalMousePosition();
-                _contextMenu.Position = new Vector2I((int)mousePos.X, (int)mousePos.Y);
-                _contextMenu.Show();
-            }
+    private void OnRequestContextMenu(Vector2 pos) {
+        GD.Print("menu");
+        if (_contextMenu != null) {
+            _contextMenu.Position = new Vector2I((int)pos.X, (int)pos.Y);
+            _contextMenu.Show();
+        }
+    }
+
+    private void OnConnectionRequest(StringName fromNode, long fromPort, StringName toNode, long toPort) {
+        TreeGraphNode? sourceNode = FindGraphNode(fromNode);
+        if (sourceNode == null) return;
+
+        var shouldUpdate = sourceNode.RequestSlotConnection(fromPort, toNode, toPort);
+        if (shouldUpdate) {
+            RefreshConnections();
         }
     }
 
@@ -59,26 +67,32 @@ public partial class TreeGraph : GraphEdit {
             new CallbackNode("cb2"));
         var rootGraphNode = new TreeGraphNode() {
             PositionOffset = (GetViewport().GetMousePosition() + ScrollOffset) / Zoom,
-            Node = testRoot,
+            DataNode = testRoot,
         };
         AddChild(rootGraphNode);
         var i = 0;
         foreach (GBTNode testChild in testRoot.Children) {
             var childGraphNode = new TreeGraphNode() {
-                Node = testChild,
+                DataNode = testChild,
             };
             AddChild(childGraphNode);
             //ConnectNode(testRoot.ID, i, testChild.ID, 0);
             i++;
         }
-        Callable.From(ArrangeNodes).CallDeferred(); // FIXME: better positioning algorithm
-        Callable.From(ReconnectNodes).CallDeferred(); // FIXME: better positioning algorithm
+        Callable.From(() => {
+            ArrangeNodes(); // TODO: better positioning algorithm
+            RefreshConnections();
+        }).CallDeferred();
     }
 
-    public void ReconnectNodes() {
+    public TreeGraphNode? FindGraphNode(string nodeName) {
+        return GetNodeOrNull<TreeGraphNode>(nodeName);
+    }
+
+    public void RefreshConnections() {
         ClearConnections();
         foreach (TreeGraphNode graphNode in GetChildren().Where(child => child is TreeGraphNode node && node.Drawer != null).Cast<TreeGraphNode>()) {
-            if (graphNode.Node == null) continue;
+            if (graphNode.DataNode == null) continue;
             foreach (SlotConnection conn in graphNode.Drawer!.GetSlotConnections()) {
                 ConnectNode(conn.FromNode, conn.FromPort, conn.ToNode, conn.ToPort);
             }

@@ -2,6 +2,7 @@ using GBT.Nodes;
 using Godot;
 using System;
 using System.Linq;
+
 public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
     public ListCompositeNodeDrawer(TreeGraphNode graphNode) : base(graphNode) { }
 
@@ -13,7 +14,7 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
             GraphNode.SetSlot(slotIndex,
                 false, SlotMetadata.Node.Type, SlotMetadata.Node.Color,
                 true, SlotMetadata.Node.Type, SlotMetadata.Node.Color);
-            slot.Child = child;
+            slot.DataChild = child;
             if (slot.ButtonMoveUp != null) {
                 slot.ButtonMoveUp.Pressed += () => OnMoveButtonPressed(node, slot, -1);
             }
@@ -34,8 +35,8 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
             newIndex = 1;
         }
         GraphNode.MoveChild(slot, newIndex);
-        if (slot.Child != null) {
-            parent.MoveChild(slot.Child, slot.ChildIndex);
+        if (slot.DataChild != null) {
+            parent.MoveChild(slot.DataChild, slot.ChildIndex);
         }
         Callable.From(Refresh).CallDeferred();
     }
@@ -46,6 +47,59 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
                                                 .Cast<ChildNodeSlot>()) {
             slot.UpdateGUI();
         }
-        GraphNode.Graph?.ReconnectNodes();
+        GraphNode.Graph?.RefreshConnections();
+    }
+
+    public override bool RequestSlotConnection(long fromPort, string toNodeName, long toPort) {
+        if (DataNode == null) {
+            return false;
+        }
+
+        ISlot? fromSlot = FindSlotByOutPort(fromPort);
+        if (fromSlot == null || !fromSlot.IsValid || fromSlot is not ChildNodeSlot thisSlot) {
+            return false;
+        }
+
+        TreeGraphNode? toNode = GraphNode?.Graph?.FindGraphNode(toNodeName);
+        if (toNode == null) {
+            // If there's no target node, empty this slot
+            // If the slot is already empty, do nothing
+            if (thisSlot.DataChild == null) {
+                return false;
+            }
+            DataNode?.RemoveChild(thisSlot.DataChild);
+            return true;
+        }
+
+        if (toPort != ParentSlotIndex) {
+            throw new InvalidOperationException("currenly GBTNode can only connect to a Parent slot");
+        }
+
+        if (toNode.DataNode == null) {
+            throw new InvalidOperationException("the target node is not a GBTNode");
+        }
+
+        if (toNode.DataNode == thisSlot.DataChild) {
+            // If the slot is already set to the target node, do nothing
+            return false;
+        }
+
+        if (toNode.DataNode.Parent == DataNode) {
+            // If the parent is unchanged but the child slot is different,
+            // we will swtich the occupied slots
+            if (GetSlots().FirstOrDefault(slot => slot is ChildNodeSlot cs && cs.DataChild == toNode.DataNode) is ChildNodeSlot otherSlot) {
+                otherSlot.DataChild = thisSlot.DataChild;
+                DataNode.SwitchChild(thisSlot.ChildIndex, otherSlot.ChildIndex);
+            }
+        } else {
+            // Otherwise, add the target node to the this composite in the given position
+            DataNode.MoveChild(toNode.DataNode, thisSlot.ChildIndex);
+        }
+        thisSlot.DataChild = toNode.DataNode;
+        return true;
+    }
+
+    private ISlot? FindSlotByOutPort(long port) {
+        return GetSlots().FirstOrDefault(slot => slot.OutPortIndex == port);
     }
 }
