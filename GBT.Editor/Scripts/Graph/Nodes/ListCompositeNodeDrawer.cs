@@ -1,32 +1,63 @@
 using GBT.Nodes;
 using Godot;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
     public ListCompositeNodeDrawer(TreeGraphNode graphNode) : base(graphNode) { }
 
+    private PackedScene _slotScene = GD.Load<PackedScene>("res://Controls/ChildNodeEntry.tscn");
+
     public override void DrawSlots(ListCompositeNode node, ref int slotIndex) {
-        PackedScene scene = GD.Load<PackedScene>("res://Controls/ChildNodeEntry.tscn");
+        var buttonAddChild = new Button() {
+            Name = "ButtonAddChild",
+            Text = "Add Child",
+        };
+        buttonAddChild.Pressed += OnAddChildPressed;
+        GraphNode.AddChild(buttonAddChild);
         foreach (GBTNode child in node.Children) {
-            ChildNodeSlot slot = scene.Instantiate<ChildNodeSlot>();
-            GraphNode.AddChild(slot);
-            GraphNode.SetSlot(slotIndex,
-                false, SlotMetadata.Node.Type, SlotMetadata.Node.Color,
-                true, SlotMetadata.Node.Type, SlotMetadata.Node.Color);
-            slot.DataChild = child;
-            if (slot.ButtonMoveUp != null) {
-                slot.ButtonMoveUp.Pressed += () => OnMoveButtonPressed(node, slot, -1);
-            }
-            if (slot.ButtonMoveDown != null) {
-                slot.ButtonMoveDown.Pressed += () => OnMoveButtonPressed(node, slot, 1);
-            }
+            //ChildNodeSlot slot = _slotScene.Instantiate<ChildNodeSlot>();
+            //GraphNode.AddChild(slot);
+            //GraphNode.SetSlot(slotIndex,
+            //    false, SlotMetadata.Node.Type, SlotMetadata.Node.Color,
+            //    true, SlotMetadata.Node.Type, SlotMetadata.Node.Color);
+            //slot.DataChild = child;
+            //if (slot.ButtonMoveUp != null) {
+            //    slot.ButtonMoveUp.Pressed += () => OnMoveButtonPressed(node, slot, -1);
+            //}
+            //if (slot.ButtonMoveDown != null) {
+            //    slot.ButtonMoveDown.Pressed += () => OnMoveButtonPressed(node, slot, 1);
+            //}
+            AddSlot(child);
             slotIndex++;
         }
         Callable.From(Refresh).CallDeferred();
     }
 
-    private void OnMoveButtonPressed(ListCompositeNode parent, ChildNodeSlot slot, int delta) {
+    private ChildNodeSlot AddSlot(GBTNode? child) {
+        ChildNodeSlot slot = _slotScene.Instantiate<ChildNodeSlot>();
+        GraphNode.AddChild(slot);
+        GraphNode.MoveChild(slot, -2);
+        slot.DataChild = child;
+        if (slot.ButtonMoveUp != null) {
+            slot.ButtonMoveUp.Pressed += () => OnMoveButtonPressed(DataNode, slot, -1);
+        }
+        if (slot.ButtonMoveDown != null) {
+            slot.ButtonMoveDown.Pressed += () => OnMoveButtonPressed(DataNode, slot, 1);
+        }
+        GraphNode.SetSlot(slot.SlotIndex,
+            false, SlotMetadata.Node.Type, SlotMetadata.Node.Color,
+            true, SlotMetadata.Node.Type, SlotMetadata.Node.Color);
+        return slot;
+    }
+
+    private void OnAddChildPressed() {
+        ChildNodeSlot slot = AddSlot(null);
+        Callable.From(slot.UpdateGUI);
+    }
+
+    private void OnMoveButtonPressed(ListCompositeNode? parent, ChildNodeSlot slot, int delta) {
         var newIndex = slot.SlotIndex + delta;
         var childSlotCount = GetSlots<ChildNodeSlot>().Count();
         // Limit the movement in the child slot range
@@ -36,16 +67,14 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
             newIndex = ChildSlotStartIndex;
         }
         GraphNode.MoveChild(slot, newIndex);
-        if (slot.DataChild != null) {
+        if (parent != null && slot.DataChild != null) {
             parent.MoveChild(slot.DataChild, slot.GetDesignedChildIndex());
         }
         Callable.From(Refresh).CallDeferred();
     }
 
     private void Refresh() {
-        foreach (ChildNodeSlot slot in GraphNode.GetChildren()
-                                                .Where(child => child is ChildNodeSlot)
-                                                .Cast<ChildNodeSlot>()) {
+        foreach (ChildNodeSlot slot in GetSlots<ChildNodeSlot>()) {
             slot.UpdateGUI();
         }
         GraphNode.Graph?.RefreshConnections();
@@ -72,6 +101,7 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
             }
             DataNode?.RemoveChild(thisSlot.DataChild);
             thisSlot.DataChild = null;
+            PrintDebugInfo();
             return true;
         }
 
@@ -89,19 +119,35 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
         }
 
         var thisChildIndex = thisSlot.GetDataChildIndex();
+        var needMoveDataChild = true;
+
+        // So far it is guaranteed that there is a GBTNode to attach
+        // AND it is different from the one bound to this slot, if any
         if (toNode.DataNode.Parent == DataNode) {
             // If the parent is unchanged but the child slot is different,
-            // we will swtich the occupied slots
+            // we will try to swtich the occupied slots
             if (GetSlots().FirstOrDefault(slot => slot is ChildNodeSlot cs && cs.DataChild == toNode.DataNode) is ChildNodeSlot otherSlot) {
-                DataNode.SwitchChild(thisChildIndex, otherSlot.GetDataChildIndex());
+                if (thisChildIndex > -1) {
+                    // Switch only if both slots have attached GBTNodes
+                    // If they are switched, we don't need further node-moving
+                    DataNode.SwitchChild(thisChildIndex, otherSlot.GetDataChildIndex());
+                    needMoveDataChild = false;
+                }
                 otherSlot.DataChild = thisSlot.DataChild;
             }
-        } else {
-            // Otherwise, add the target node to the this composite in the given position
+        }
+        if (needMoveDataChild) {
+            // Otherwise, move and add (if necessary) the target node to the given position
             DataNode.MoveChild(toNode.DataNode, thisSlot.GetDesignedChildIndex());
         }
         thisSlot.DataChild = toNode.DataNode;
-        GD.Print(string.Join(",", DataNode.Children.Select(child => child.Name)));
+        PrintDebugInfo();
         return true;
+    }
+
+    private void PrintDebugInfo() {
+        var dbg = string.Join(",", DataNode?.Children.Select(child => child.Name) ?? []);
+        GD.Print(dbg);
+        Debug.WriteLine(dbg);
     }
 }

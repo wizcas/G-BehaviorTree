@@ -87,7 +87,6 @@ public partial class TreeGraph : GraphEdit {
                 DataNode = testChild,
             };
             AddChild(childGraphNode);
-            //ConnectNode(testRoot.ID, i, testChild.ID, 0);
             i++;
         }
         Callable.From(() => {

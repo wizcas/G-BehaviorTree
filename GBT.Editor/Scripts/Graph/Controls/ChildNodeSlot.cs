@@ -49,7 +49,19 @@ public partial class ChildNodeSlot : Control, ISlot {
         if (GraphNode.Drawer == null) {
             throw new InvalidOperationException($"the parent TreeNodeGraph doesn't have a valid GBTNodeDrawer");
         }
-        return GraphNode.Drawer.GetSlots<ChildNodeSlot>().Where(slot => slot.DataChild != null).ToList().IndexOf(this);
+        //return GraphNode.Drawer.GetSlots<ChildNodeSlot>().Where(slot => slot.DataChild != null).ToList().IndexOf(this);
+        var slots = GraphNode.Drawer.GetSlots<ChildNodeSlot>().ToList();
+        var index = 0;
+        for (var i = 0; i < slots.Count; i++) {
+            ChildNodeSlot slot = slots[i];
+            if (slot == this) {
+                break;
+            }
+            if (slot.DataChild != null) {
+                index++;
+            }
+        }
+        return index;
     }
 
     public void UpdateGUI() {
@@ -74,5 +86,10 @@ public partial class ChildNodeSlot : Control, ISlot {
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(double delta) {
+    }
+
+    public override string ToString() {
+        return $"[Slot #{SlotIndex}, Child #{OutPortIndex}] {DataChild?.Name ?? "(null)"}";
+
     }
 }
