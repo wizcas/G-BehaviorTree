@@ -97,6 +97,7 @@ public partial class TreeGraph : GraphEdit {
     }
 
     public TreeGraphNode? FindGraphNode(string nodeName) {
+        if (string.IsNullOrEmpty(nodeName)) return null;
         return GetNodeOrNull<TreeGraphNode>(nodeName);
     }
 
@@ -104,7 +105,8 @@ public partial class TreeGraph : GraphEdit {
         ClearConnections();
         foreach (TreeGraphNode graphNode in GetChildren().Where(child => child is TreeGraphNode node && node.Drawer != null).Cast<TreeGraphNode>()) {
             if (graphNode.DataNode == null) continue;
-            foreach (SlotConnection conn in graphNode.Drawer!.GetSlotConnections()) {
+            foreach (SlotConnection conn in graphNode.Drawer!.GetSlotConnections()
+                .Where(conn => !string.IsNullOrEmpty(conn.FromNode) && !string.IsNullOrEmpty(conn.ToNode))) {
                 ConnectNode(conn.FromNode, conn.FromPort, conn.ToNode, conn.ToPort);
             }
         }
