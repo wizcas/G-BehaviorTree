@@ -26,6 +26,7 @@ public partial class TreeGraphNode : GraphNode {
     // Called when the node enters the scene tree for the first time.
     public override void _Ready() {
         Graph = GetNode<TreeGraph>("..");
+        Resizable = true;
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
