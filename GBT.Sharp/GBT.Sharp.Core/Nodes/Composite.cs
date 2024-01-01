@@ -58,6 +58,9 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         Context.ResetCurrentChild();
     }
 
+    public int GetChildIndex(GBTNode child) {
+        return _children.IndexOf(child);
+    }
 
     public IParentNode AddChild(GBTNode child) {
         if (!_children.Contains(child)) {
@@ -84,6 +87,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         var removed = _children.Remove(child);
         if (removed) {
             child.Runtime = null;
+            child.Parent = null;
         }
         return removed;
     }
@@ -109,6 +113,10 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
     }
 
     public void SwitchChild(int a, int b) {
+        if (a < 0 || a >= _children.Count || b < 0 || b >= _children.Count) {
+            return;
+        }
+
         GBTNode tmp = _children[a];
         _children[a] = _children[b];
         _children[b] = tmp;
@@ -124,7 +132,7 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
                 }
 
                 GBTNode? child = Children[_currentChildIndex];
-                if (child.IsDisabled) {
+                if (child == null || child.IsDisabled) {
                     // if the current child is disabled, recursively get the next enabled child or quit
                     child = CurrentChild = PeekNextChild();
                 }

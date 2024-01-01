@@ -12,6 +12,7 @@ public enum NodeState {
 /// </summary>
 public interface IParentNode {
     public IEnumerable<GBTNode> Children { get; }
+    public int GetChildIndex(GBTNode child);
     /// <summary>
     /// Adding a child to this node. Depending on the type of the node,
     /// this may substitute the current child or add the child to a list.

@@ -21,6 +21,10 @@ public abstract class DecoratorNode : GBTNode, ISingularParentNode {
 
     public GBTNode? Child { get; private set; }
     public IEnumerable<GBTNode> Children => Child is null ? Enumerable.Empty<GBTNode>() : new[] { Child };
+
+    public int GetChildIndex(GBTNode child) {
+        return Child == child ? 0 : -1;
+    }
     public IParentNode AddChild(GBTNode child) {
         if (child == Child) {
             return this;

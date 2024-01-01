@@ -18,7 +18,7 @@ public interface ISlot {
 
 public abstract class GBTNodeDrawer(TreeGraphNode graphNode) {
     public const int ParentSlotIndex = 0;
-    public const int SlotStartIndex = 1;
+    public const int ChildSlotStartIndex = 1;
     public TreeGraphNode GraphNode { get; } = graphNode;
     public GBTNode? DataNode => GraphNode.DataNode;
 
@@ -36,6 +36,9 @@ public abstract class GBTNodeDrawer(TreeGraphNode graphNode) {
 
     public IEnumerable<ISlot> GetSlots() {
         return GraphNode.GetChildren().Where(child => child is ISlot slot && slot.IsValid).Cast<ISlot>();
+    }
+    public IEnumerable<TSlot> GetSlots<TSlot>() where TSlot : ISlot {
+        return GetSlots().Where(slot => slot is TSlot).Cast<TSlot>();
     }
 
     public virtual IEnumerable<SlotConnection> GetSlotConnections() {
@@ -63,7 +66,7 @@ public abstract class GBTNodeDrawer<TDataNode> : GBTNodeDrawer where TDataNode :
                 Text = $"[REQUIRE {typeof(TDataNode).Name}]",
             });
         } else {
-            var slotIndex = SlotStartIndex;
+            var slotIndex = ChildSlotStartIndex;
             DrawSlots(typedNode, ref slotIndex);
         }
     }

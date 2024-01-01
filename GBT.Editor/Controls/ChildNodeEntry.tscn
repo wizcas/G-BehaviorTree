@@ -22,8 +22,10 @@ layout_mode = 2
 text = "[0]"
 
 [node name="ChildName" type="Label" parent="."]
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 text = "Child Name"
+text_overrun_behavior = 3
 
 [node name="Up" type="Button" parent="."]
 layout_mode = 2

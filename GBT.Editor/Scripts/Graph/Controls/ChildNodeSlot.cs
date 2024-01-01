@@ -1,5 +1,7 @@
 using GBT.Nodes;
 using Godot;
+using System;
+using System.Linq;
 
 [GlobalClass]
 public partial class ChildNodeSlot : Control, ISlot {
@@ -20,9 +22,8 @@ public partial class ChildNodeSlot : Control, ISlot {
     public string OwnerNodeName => GraphNode.Name;
     public string TargetNodeName => DataChild?.ID ?? string.Empty;
     public int SlotIndex => GetIndex();
-    public int ChildIndex => SlotIndex - 1;
     public int InPortIndex => -1;
-    public int OutPortIndex => ChildIndex;
+    public int OutPortIndex => SlotIndex - GBTNodeDrawer.ChildSlotStartIndex;
     public bool IsValid => true;
 
     public GBTNode? DataChild {
@@ -33,13 +34,27 @@ public partial class ChildNodeSlot : Control, ISlot {
         }
     }
 
-
-
     #endregion
+
+    public int GetDataChildIndex() {
+        if (DataChild == null) {
+            return -1;
+        }
+        return (DataChild.Parent as IParentNode)?.GetChildIndex(DataChild) ?? -1;
+    }
+    public int GetDesignedChildIndex() {
+        if (GraphNode == null) {
+            throw new InvalidOperationException($"the slot doesn't have a TreeNodeGraph parent");
+        }
+        if (GraphNode.Drawer == null) {
+            throw new InvalidOperationException($"the parent TreeNodeGraph doesn't have a valid GBTNodeDrawer");
+        }
+        return GraphNode.Drawer.GetSlots<ChildNodeSlot>().Where(slot => slot.DataChild != null).ToList().IndexOf(this);
+    }
 
     public void UpdateGUI() {
         if (LabelNodeIndex != null) {
-            LabelNodeIndex.Text = $"[{ChildIndex}]";
+            LabelNodeIndex.Text = $"[{OutPortIndex}]";
         }
         if (LabelChildName != null) {
             if (_child == null) {

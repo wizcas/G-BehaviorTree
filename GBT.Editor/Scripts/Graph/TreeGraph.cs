@@ -28,7 +28,6 @@ public partial class TreeGraph : GraphEdit {
     }
 
     private void OnRequestContextMenu(Vector2 pos) {
-        GD.Print("menu");
         if (_contextMenu != null) {
             _contextMenu.Position = new Vector2I((int)pos.X, (int)pos.Y);
             _contextMenu.Show();
@@ -74,7 +73,9 @@ public partial class TreeGraph : GraphEdit {
     private void CreateTestNode() {
         SequenceNode testRoot = new SequenceNode("Seq.").AddChildren(
             new CallbackNode("cb1"),
-            new CallbackNode("cb2"));
+            new CallbackNode("cb2"),
+            new CallbackNode("cb3")
+        );
         var rootGraphNode = new TreeGraphNode() {
             PositionOffset = (GetViewport().GetMousePosition() + ScrollOffset) / Zoom,
             DataNode = testRoot,
