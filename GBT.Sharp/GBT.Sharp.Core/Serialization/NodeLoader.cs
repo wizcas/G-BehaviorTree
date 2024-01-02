@@ -1,22 +1,22 @@
-using GBT.Sharp.Core.Nodes;
+using GBT.Nodes;
 
-namespace GBT.Sharp.Core.Serialization;
+namespace GBT.Serialization;
 
 public class NodeLoader {
-    private readonly Dictionary<string, Node> _cache = new();
+    private readonly Dictionary<string, GBTNode> _cache = new();
 
     public void Reset() {
         _cache.Clear();
     }
 
-    public TNode Load<TNode>(Node.Data data) where TNode : Node {
+    public TNode Load<TNode>(GBTNode.Data data) where TNode : GBTNode {
         return data.LoadNode<TNode>(_cache);
     }
-    public Node Load(Node.Data data) {
+    public GBTNode Load(GBTNode.Data data) {
         return data.LoadNode(_cache);
     }
-    public Dictionary<string, Node> LoadAll(IEnumerable<Node.Data> datas) {
-        foreach (Node.Data data in datas) {
+    public Dictionary<string, GBTNode> LoadAll(IEnumerable<GBTNode.Data> datas) {
+        foreach (GBTNode.Data data in datas) {
             data.LoadNode(_cache);
         }
         return _cache;

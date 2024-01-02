@@ -1,10 +1,10 @@
-﻿using GBT.Sharp.Core.Nodes;
-using GBT.Sharp.Core.Serialization;
+﻿using GBT.Nodes;
+using GBT.Serialization;
 using MessagePack;
 using NanoidDotNet;
 using System.Buffers;
 
-namespace GBT.Sharp.Core;
+namespace GBT;
 
 public partial class BehaviorTree {
     public static TreeLogger Logger { get; } = new TreeLogger();
@@ -12,7 +12,7 @@ public partial class BehaviorTree {
     public string ID { get; private set; } = Nanoid.Generate();
 
     private TreeRuntime _runtime;
-    private Node? _rootNode;
+    private GBTNode? _rootNode;
 
     public TreeRuntime Runtime {
         get => _runtime;
@@ -28,7 +28,7 @@ public partial class BehaviorTree {
         _runtime = runtime ?? CreateRuntime();
     }
 
-    public void SetRootNode(Node rootNode) {
+    public void SetRootNode(GBTNode rootNode) {
         _rootNode = rootNode;
         _rootNode.Runtime = _runtime;
     }
@@ -50,7 +50,7 @@ public partial class BehaviorTree {
         }
 
         Runtime.Trace.Add(null, $"interrupt");
-        Node? node = Runtime.RunningNode;
+        GBTNode? node = Runtime.RunningNode;
         while (node is not null) {
             node.Reset();
             node = node.Parent;
@@ -58,13 +58,13 @@ public partial class BehaviorTree {
         Runtime.RunningNode = null;
     }
 
-    public IEnumerable<Node> Flatten() {
-        return _rootNode?.Flatten() ?? Enumerable.Empty<Node>();
+    public IEnumerable<GBTNode> Flatten() {
+        return _rootNode?.Flatten() ?? Enumerable.Empty<GBTNode>();
     }
-    public Node? FindNode(string id) {
+    public GBTNode? FindNode(string id) {
         return Flatten().FirstOrDefault(n => n.ID == id);
     }
-    public Node? FindNodeByName(string name) {
+    public GBTNode? FindNodeByName(string name) {
         return Flatten().FirstOrDefault(n => n.Name == name);
     }
 
@@ -79,17 +79,17 @@ public partial class BehaviorTree {
     private Data WriteSavedData() {
         return new Data(
             ID: ID,
-            Nodes: _rootNode?.Save(null).ToArray() ?? Array.Empty<Node.Data>(),
+            Nodes: _rootNode?.Save(null).ToArray() ?? Array.Empty<GBTNode.Data>(),
             RootID: _rootNode?.ID ?? string.Empty);
     }
     private void ReadSavedData(Data data) {
         ID = data.ID;
         if (data.Nodes.Length > 0) {
             var nodeLoader = new NodeLoader();
-            Dictionary<string, Node> nodes = nodeLoader.LoadAll(data.Nodes);
+            Dictionary<string, GBTNode> nodes = nodeLoader.LoadAll(data.Nodes);
             if (string.IsNullOrEmpty(data.RootID)) {
                 Logger.Warn("cannot set loaded root node because RootID is empty", null);
-            } else if (nodes.TryGetValue(data.RootID, out Node? rootNode)) {
+            } else if (nodes.TryGetValue(data.RootID, out GBTNode? rootNode)) {
                 SetRootNode(rootNode);
             } else {
                 Logger.Warn($"cannot set loaded root node ({data.RootID}) because it was not loaded", null);

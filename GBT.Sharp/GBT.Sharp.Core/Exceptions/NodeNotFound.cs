@@ -1,4 +1,4 @@
-namespace GBT.Sharp.Core.Exceptions;
+namespace GBT.Exceptions;
 
 public class NodeNotFoundException : Exception {
     public NodeNotFoundException(

@@ -1,9 +1,9 @@
-using GBT.Sharp.Core.Nodes;
+using GBT.Nodes;
 
-namespace GBT.Sharp.Core;
+namespace GBT;
 
 public partial class NodeContext {
-    public Node Node { get; set; }
+    public GBTNode Node { get; set; }
 
     private NodeState _state;
     public NodeState State {
@@ -16,7 +16,7 @@ public partial class NodeContext {
         }
     }
 
-    public NodeContext(Node node) {
+    public NodeContext(GBTNode node) {
         Node = node;
     }
     public virtual void Reset() { }
@@ -29,7 +29,7 @@ public partial class NodeContext {
     }
 }
 
-public class NodeContext<T> : NodeContext where T : Node {
+public class NodeContext<T> : NodeContext where T : GBTNode {
     public NodeContext(T node) : base(node) {
     }
     public new T Node => (T)base.Node;

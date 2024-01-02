@@ -1,5 +1,5 @@
-using GBT.Sharp.Core.Diagnostics;
-using GBT.Sharp.Core.Nodes;
+using GBT.Diagnostics;
+using GBT.Nodes;
 
 namespace GBT.Sharp.Core.Tests;
 

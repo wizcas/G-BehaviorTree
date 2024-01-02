@@ -1,12 +1,12 @@
-using GBT.Sharp.Core.Nodes;
+using GBT.Nodes;
 using MessagePack;
 
-namespace GBT.Sharp.Core;
+namespace GBT;
 
 public partial class BehaviorTree {
     [MessagePackObject(true)]
     public record struct Data(
         string ID,
-        Node.Data[] Nodes,
+        GBTNode.Data[] Nodes,
         string? RootID);
 }

@@ -1,8 +1,8 @@
 using MessagePack;
 
-namespace GBT.Sharp.Core.Nodes;
+namespace GBT.Nodes;
 
-public partial class Node {
+public partial class GBTNode {
     /// <summary>
     /// Persistable data for a node.
     /// </summary>
@@ -18,15 +18,15 @@ public partial class Node {
         /// </summary>
         public Dictionary<string, object?> Extra { get; set; } = new();
 
-        public static Data FromNode(Node node) {
+        public static Data FromNode(GBTNode node) {
             return new(node.GetType(), node.ID, node.Name, node.Parent?.ID, node.IsDisabled);
         }
-        public readonly Node LoadNode(Dictionary<string, Node> loadedNodes) {
-            var node = (Node)Activator.CreateInstance(NodeType, new object[] { ID, Name })!;
+        public readonly GBTNode LoadNode(Dictionary<string, GBTNode> loadedNodes) {
+            var node = (GBTNode)Activator.CreateInstance(NodeType, new object[] { ID, Name })!;
             node.ReadSaveData(this);
             loadedNodes.Add(ID, node);
             if (!string.IsNullOrEmpty(ParentID)) {
-                if (loadedNodes.TryGetValue(ParentID, out Node? parent) && parent is IParentNode) {
+                if (loadedNodes.TryGetValue(ParentID, out GBTNode? parent) && parent is IParentNode) {
                     node.Parent = parent;
                 } else {
                     BehaviorTree.Logger.Warn($"failed binding saved parent - parent node not loaded yet or invalid", node);
@@ -34,7 +34,7 @@ public partial class Node {
             }
             return node;
         }
-        public readonly TNode LoadNode<TNode>(Dictionary<string, Node> loadedNodes) where TNode : Node {
+        public readonly TNode LoadNode<TNode>(Dictionary<string, GBTNode> loadedNodes) where TNode : GBTNode {
             return (TNode)LoadNode(loadedNodes);
         }
     }

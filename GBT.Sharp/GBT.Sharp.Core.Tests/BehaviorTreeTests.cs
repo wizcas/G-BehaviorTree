@@ -1,4 +1,4 @@
-using GBT.Sharp.Core.Nodes;
+using GBT.Nodes;
 
 namespace GBT.Sharp.Core.Tests;
 
