@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b7un6qlk4ikgk"]
 
-[ext_resource type="Script" path="res://Scripts/Graph/Controls/ChildNodeSlot.cs" id="1_so5mv"]
+[ext_resource type="Script" path="res://Scripts/Graph/Slots/ChildNodeSlot.cs" id="1_so5mv"]
 
 [node name="ChildNodeEntry" type="HBoxContainer" node_paths=PackedStringArray("LabelNodeIndex", "LabelChildName", "ButtonMoveUp", "ButtonMoveDown")]
 script = ExtResource("1_so5mv")

@@ -5,7 +5,7 @@ using Godot.Collections;
 using System.Linq;
 
 public partial class TreeGraph : GraphEdit {
-    private PopupMenu? _contextMenu;
+    private TreeGraphContextMenu? _contextMenu;
     private Dictionary<int, Callable> _contextActions = new();
 
     private BehaviorTree? _tree;
@@ -54,20 +54,10 @@ public partial class TreeGraph : GraphEdit {
     }
 
     private void InitializeContextMenu() {
-        _contextMenu = GetNode<PopupMenu>("ContextMenu");
-        _contextMenu.IdPressed += OnContextMenuIDPressed;
-        _contextMenu.AddItem("Create Test Node", 0);
-        _contextActions = new(){
-            {0, Callable.From(CreateTestNode)},
-        };
-    }
-
-    private void OnContextMenuIDPressed(long id) {
-        if (_contextActions.TryGetValue((int)id, out Callable action)) {
-            action.Call();
-        } else {
-            GD.Print($"No graph action found for context menu ID {id}");
-        }
+        _contextMenu = GetNode<TreeGraphContextMenu>("ContextMenu");
+        _contextMenu?.AddMenuItems([
+            new(0, "Create test nodes", CreateTestNode),
+        ]);
     }
 
     private void CreateTestNode() {
@@ -89,6 +79,18 @@ public partial class TreeGraph : GraphEdit {
             AddChild(childGraphNode);
             i++;
         }
+        Callable.From(() => {
+            ArrangeNodes(); // TODO: better positioning algorithm
+            RefreshConnections();
+        }).CallDeferred();
+    }
+
+    public void CreateGraphNode(GBTNode dataNode) {
+        var rootGraphNode = new TreeGraphNode() {
+            PositionOffset = (GetViewport().GetMousePosition() + ScrollOffset) / Zoom,
+            DataNode = dataNode,
+        };
+        AddChild(rootGraphNode);
         Callable.From(() => {
             ArrangeNodes(); // TODO: better positioning algorithm
             RefreshConnections();

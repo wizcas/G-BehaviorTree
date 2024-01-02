@@ -17,18 +17,6 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
         buttonAddChild.Pressed += OnAddChildPressed;
         GraphNode.AddChild(buttonAddChild);
         foreach (GBTNode child in node.Children) {
-            //ChildNodeSlot slot = _slotScene.Instantiate<ChildNodeSlot>();
-            //GraphNode.AddChild(slot);
-            //GraphNode.SetSlot(slotIndex,
-            //    false, SlotMetadata.Node.Type, SlotMetadata.Node.Color,
-            //    true, SlotMetadata.Node.Type, SlotMetadata.Node.Color);
-            //slot.DataChild = child;
-            //if (slot.ButtonMoveUp != null) {
-            //    slot.ButtonMoveUp.Pressed += () => OnMoveButtonPressed(node, slot, -1);
-            //}
-            //if (slot.ButtonMoveDown != null) {
-            //    slot.ButtonMoveDown.Pressed += () => OnMoveButtonPressed(node, slot, 1);
-            //}
             AddSlot(child);
             slotIndex++;
         }

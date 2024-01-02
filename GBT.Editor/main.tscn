@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://e7nyx47xy7c3"]
+[gd_scene load_steps=5 format=3 uid="uid://e7nyx47xy7c3"]
 
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraph.cs" id="1_kvu8r"]
 [ext_resource type="Script" path="res://Scripts/Graph/Nodes/TreeGraphNode.cs" id="2_ghf02"]
+[ext_resource type="Script" path="res://Scripts/Graph/TreeGraphContextMenu.cs" id="2_h52ie"]
 [ext_resource type="PackedScene" uid="uid://b7un6qlk4ikgk" path="res://Controls/ChildNodeEntry.tscn" id="3_yehqu"]
 
 [node name="Control" type="Control"]
@@ -22,6 +23,9 @@ grow_vertical = 2
 script = ExtResource("1_kvu8r")
 
 [node name="ContextMenu" type="PopupMenu" parent="TreeGraph"]
+script = ExtResource("2_h52ie")
+
+[node name="CreateNodeMenu" type="PopupMenu" parent="TreeGraph/ContextMenu"]
 
 [node name="TreeGraphNode" type="GraphNode" parent="TreeGraph"]
 layout_mode = 0

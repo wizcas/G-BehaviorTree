@@ -2,6 +2,7 @@ using GBT.Nodes;
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 [GlobalClass]
 public partial class TreeGraphNode : GraphNode {
@@ -21,6 +22,7 @@ public partial class TreeGraphNode : GraphNode {
 
     private static Dictionary<Type, Func<TreeGraphNode, GBTNodeDrawer>> NodeDrawerMap = new() {
         { typeof(SequenceNode), (graphNode)=>new ListCompositeNodeDrawer(graphNode) },
+        { typeof(SelectorNode), (graphNode)=>new ListCompositeNodeDrawer(graphNode) },
     };
 
     // Called when the node enters the scene tree for the first time.
@@ -54,6 +56,10 @@ public partial class TreeGraphNode : GraphNode {
     public bool RequestSlotConnection(long fromPort, string toNodeName, long toPort) {
         if (Drawer == null) return false;
         return Drawer.RequestSlotConnection(fromPort, toNodeName, toPort);
+    }
+
+    public static IEnumerable<Type> GetCreatableNodes() {
+        return NodeDrawerMap.Keys.OrderBy(type => type.Name);
     }
 }
 
