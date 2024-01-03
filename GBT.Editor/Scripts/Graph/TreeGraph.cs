@@ -8,6 +8,8 @@ public partial class TreeGraph : GraphEdit {
     private TreeGraphContextMenu? _contextMenu;
     private Dictionary<int, Callable> _contextActions = new();
 
+    [Export] public RenameNodeModal? RenameNodeModal { get; private set; }
+
     private BehaviorTree? _tree;
 
     // Called when the node enters the scene tree for the first time.

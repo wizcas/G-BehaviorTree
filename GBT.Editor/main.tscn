@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://e7nyx47xy7c3"]
+[gd_scene load_steps=6 format=3 uid="uid://e7nyx47xy7c3"]
 
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraph.cs" id="1_kvu8r"]
 [ext_resource type="Script" path="res://Scripts/Graph/Nodes/TreeGraphNode.cs" id="2_ghf02"]
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraphContextMenu.cs" id="2_h52ie"]
+[ext_resource type="Script" path="res://Scripts/Graph/RenameNodeModal.cs" id="3_tqr46"]
 [ext_resource type="PackedScene" uid="uid://b7un6qlk4ikgk" path="res://Controls/ChildNodeEntry.tscn" id="3_yehqu"]
 
 [node name="Control" type="Control"]
@@ -13,7 +14,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TreeGraph" type="GraphEdit" parent="."]
+[node name="TreeGraph" type="GraphEdit" parent="." node_paths=PackedStringArray("RenameNodeModal")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -21,11 +22,55 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_kvu8r")
+RenameNodeModal = NodePath("RenameNodeModal")
 
 [node name="ContextMenu" type="PopupMenu" parent="TreeGraph"]
 script = ExtResource("2_h52ie")
 
 [node name="CreateNodeMenu" type="PopupMenu" parent="TreeGraph/ContextMenu"]
+
+[node name="RenameNodeModal" type="Popup" parent="TreeGraph" node_paths=PackedStringArray("_editName", "_buttonOK")]
+title = "Rename node"
+initial_position = 2
+size = Vector2i(300, 126)
+borderless = false
+script = ExtResource("3_tqr46")
+_editName = NodePath("MarginContainer/VBoxContainer/NameEdit")
+_buttonOK = NodePath("MarginContainer/VBoxContainer/ButtonSubmit")
+
+[node name="MarginContainer" type="MarginContainer" parent="TreeGraph/RenameNodeModal"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TreeGraph/RenameNodeModal/MarginContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Node Name:"
+
+[node name="NameEdit" type="LineEdit" parent="TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+placeholder_text = "A descriptive name"
+select_all_on_focus = true
+
+[node name="Spacing" type="Control" parent="TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="ButtonSubmit" type="Button" parent="TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "OK"
 
 [node name="TreeGraphNode" type="GraphNode" parent="TreeGraph"]
 layout_mode = 0

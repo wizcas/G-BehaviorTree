@@ -29,6 +29,16 @@ public partial class TreeGraphNode : GraphNode {
     public override void _Ready() {
         Graph = GetNode<TreeGraph>("..");
         Resizable = true;
+        GetTitlebarHBox().GuiInput += (e) => {
+            if (e is InputEventMouseButton mouseEvent && mouseEvent.ButtonIndex == MouseButton.Left && mouseEvent.DoubleClick) {
+                Callable.From(() => {
+                    Graph.RenameNodeModal?.Show(this);
+                }).CallDeferred();
+            }
+        };
+        if (Graph.RenameNodeModal != null) {
+            Graph.RenameNodeModal.NameChanged += OnNodeNameChanged;
+        }
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -51,6 +61,13 @@ public partial class TreeGraphNode : GraphNode {
             }
         }
         Drawer.DrawSlots(DataNode);
+    }
+
+    private void OnNodeNameChanged(string name) {
+        if (DataNode != null) {
+            DataNode.Name = name;
+        }
+        Title = name;
     }
 
     public bool RequestSlotConnection(long fromPort, string toNodeName, long toPort) {
