@@ -31,11 +31,12 @@ public partial class TreeGraphNode : GraphNode {
         Resizable = true;
         GetTitlebarHBox().GuiInput += (e) => {
             if (e is InputEventMouseButton mouseEvent && mouseEvent.ButtonIndex == MouseButton.Left && mouseEvent.DoubleClick) {
-                Callable.From(() => {
-                    Graph.RenameNodeModal?.Show(this);
-                }).CallDeferred();
+                ShowRenameModal();
             }
         };
+        var renameButton = new Button() { Text = "Re" }; // TODO: icon
+        renameButton.Pressed += ShowRenameModal;
+        GetTitlebarHBox().AddChild(renameButton);
         if (Graph.RenameNodeModal != null) {
             Graph.RenameNodeModal.NameChanged += OnNodeNameChanged;
         }
@@ -61,6 +62,12 @@ public partial class TreeGraphNode : GraphNode {
             }
         }
         Drawer.DrawSlots(DataNode);
+    }
+
+    private void ShowRenameModal() {
+        Callable.From(() => {
+            Graph?.RenameNodeModal?.Show(this);
+        }).CallDeferred();
     }
 
     private void OnNodeNameChanged(string name) {
