@@ -3,6 +3,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 [GlobalClass]
 public partial class TreeGraphNode : GraphNode {
@@ -29,8 +30,10 @@ public partial class TreeGraphNode : GraphNode {
     public override void _Ready() {
         Graph = GetNode<TreeGraph>("..");
         Resizable = true;
-        GetTitlebarHBox().GuiInput += (e) => {
+        GetTitlebarHBox().GuiInput += async (e) => {
             if (e is InputEventMouseButton mouseEvent && mouseEvent.ButtonIndex == MouseButton.Left && mouseEvent.DoubleClick) {
+                // Wait for the mouse event to finish, otherwise it'll drag the node after modal closed
+                await Task.Delay(100);
                 ShowRenameModal();
             }
         };
@@ -65,12 +68,11 @@ public partial class TreeGraphNode : GraphNode {
     }
 
     private void ShowRenameModal() {
-        Callable.From(() => {
-            Graph?.RenameNodeModal?.Show(this);
-        }).CallDeferred();
+        Graph?.RenameNodeModal?.Show(this);
     }
 
-    private void OnNodeNameChanged(string name) {
+    private void OnNodeNameChanged(TreeGraphNode? sender, string name) {
+        if (sender != this) return;
         if (DataNode != null) {
             DataNode.Name = name;
         }

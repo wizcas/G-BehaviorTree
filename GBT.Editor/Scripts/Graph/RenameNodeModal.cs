@@ -2,12 +2,13 @@ using Godot;
 using System;
 
 public partial class RenameNodeModal : Popup {
-    public event Action<string>? NameChanged;
+    public event Action<TreeGraphNode?, string>? NameChanged;
     #region GUI
     [Export] private LineEdit? _editName;
     [Export] private Button? _buttonOK;
-
     #endregion
+
+    private TreeGraphNode? _currentNode;
     // Called when the node enters the scene tree for the first time.
     public override void _Ready() {
         if (_editName != null) {
@@ -34,7 +35,7 @@ public partial class RenameNodeModal : Popup {
             // TODO: error message or a hint to show the reason;
             return;
         }
-        NameChanged?.Invoke(newName);
+        NameChanged?.Invoke(_currentNode, newName);
         Hide();
     }
 
@@ -44,6 +45,7 @@ public partial class RenameNodeModal : Popup {
 
     public void Show(TreeGraphNode node) {
         if (_editName == null) return;
+        _currentNode = node;
         _editName.Text = node.DataNode?.Name ?? string.Empty;
         Show();
         _editName.GrabFocus();
