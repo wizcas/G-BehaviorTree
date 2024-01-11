@@ -33,7 +33,7 @@ public partial class TreeGraphNode : GraphNode {
         GetTitlebarHBox().GuiInput += async (e) => {
             if (e is InputEventMouseButton mouseEvent && mouseEvent.ButtonIndex == MouseButton.Left && mouseEvent.DoubleClick) {
                 // Wait for the mouse event to finish, otherwise it'll drag the node after modal closed
-                await Task.Delay(100);
+                await Task.Delay(200);
                 ShowRenameModal();
             }
         };
@@ -49,14 +49,17 @@ public partial class TreeGraphNode : GraphNode {
     public override void _Process(double delta) {
     }
 
-    private void UpdateNode(bool shouldUpdateDrawer) {
+    private void UpdateNode(bool forceUpdateDrawer) {
         ClearAllSlots();
+        foreach (Node? child in GetChildren()) {
+            child.Free();
+        }
 
         Name = DataNode?.ID ?? "EmptyGraphNode";
         Title = DataNode?.Name ?? "(No Node)";
 
         if (DataNode == null) return;
-        if (Drawer == null || shouldUpdateDrawer) {
+        if (Drawer == null || forceUpdateDrawer) {
             // Create graph slot drawer by GBT Node types
             if (NodeDrawerMap.TryGetValue(DataNode.GetType(), out Func<TreeGraphNode, GBTNodeDrawer>? drawerFactory)) {
                 Drawer = drawerFactory(this);
@@ -72,11 +75,17 @@ public partial class TreeGraphNode : GraphNode {
     }
 
     private void OnNodeNameChanged(TreeGraphNode? sender, string name) {
-        if (sender != this) return;
-        if (DataNode != null) {
-            DataNode.Name = name;
+        if (sender == this) {
+            if (DataNode != null) {
+                DataNode.Name = name;
+            }
+            Title = name;
+        } else if (DataNode is IParentNode p) {
+            // rerender slots in case they should reflect the name change of the child nodes
+            if (p.Children.Any(child => sender != null && child == sender?.DataNode)) {
+                UpdateNode(false);
+            }
         }
-        Title = name;
     }
 
     public bool RequestSlotConnection(long fromPort, string toNodeName, long toPort) {
