@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://e7nyx47xy7c3"]
+[gd_scene load_steps=7 format=3 uid="uid://e7nyx47xy7c3"]
 
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraph.cs" id="1_kvu8r"]
 [ext_resource type="Script" path="res://Scripts/Graph/Nodes/TreeGraphNode.cs" id="2_ghf02"]
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraphContextMenu.cs" id="2_h52ie"]
 [ext_resource type="Script" path="res://Scripts/Graph/RenameNodeModal.cs" id="3_tqr46"]
 [ext_resource type="PackedScene" uid="uid://b7un6qlk4ikgk" path="res://Controls/ChildNodeEntry.tscn" id="3_yehqu"]
+[ext_resource type="CodeHighlighter" uid="uid://saaomcxjms6w" path="res://json-highlighter.tres" id="6_o8q46"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -105,5 +106,10 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.5
+auto_translate = false
+localize_numeral_system = false
 editable = false
 wrap_mode = 1
+minimap_draw = true
+syntax_highlighter = ExtResource("6_o8q46")
+highlight_all_occurrences = true

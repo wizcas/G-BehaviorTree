@@ -14,6 +14,8 @@ public partial class BehaviorTree {
     private TreeRuntime _runtime;
     private GBTNode? _rootNode;
 
+    public GBTNode? RootNode => _rootNode;
+
     public TreeRuntime Runtime {
         get => _runtime;
         set {

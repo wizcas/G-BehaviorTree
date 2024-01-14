@@ -21,6 +21,8 @@ public partial class TreeGraphNode : GraphNode {
     }
     public GBTNodeDrawer? Drawer { get; private set; }
 
+    private Control? _rootBadge;
+
     private static Dictionary<Type, Func<TreeGraphNode, GBTNodeDrawer>> NodeDrawerMap = new() {
         { typeof(SequenceNode), (graphNode)=>new ListCompositeNodeDrawer(graphNode) },
         { typeof(SelectorNode), (graphNode)=>new ListCompositeNodeDrawer(graphNode) },
@@ -29,11 +31,16 @@ public partial class TreeGraphNode : GraphNode {
     // Called when the node enters the scene tree for the first time.
     public override void _Ready() {
         Graph = GetNode<TreeGraph>("..");
+        Graph.RootChanged += UpdateRootState;
         Resizable = true;
-        GetTitlebarHBox().GuiInput += OnTitlebarGuiInput;
+        HBoxContainer titlebar = GetTitlebarHBox();
+        titlebar.GuiInput += OnTitlebarGuiInput;
+        _rootBadge = new Label() { Text = "Root", Visible = false };
+        _rootBadge.AddThemeColorOverride("font_color", Colors.Yellow);
+        titlebar.AddChild(_rootBadge);
         var renameButton = new Button() { Text = "Re" }; // TODO: icon
         renameButton.Pressed += ShowRenameModal;
-        GetTitlebarHBox().AddChild(renameButton);
+        titlebar.AddChild(renameButton);
         if (Graph.RenameNodeModal != null) {
             Graph.RenameNodeModal.NameChanged += OnNodeNameChanged;
         }
@@ -106,6 +113,12 @@ public partial class TreeGraphNode : GraphNode {
 
     public static IEnumerable<Type> GetCreatableNodes() {
         return NodeDrawerMap.Keys.OrderBy(type => type.Name);
+    }
+
+    private void UpdateRootState() {
+        if (_rootBadge != null) {
+            _rootBadge.Visible = Graph?.RootNode == DataNode;
+        }
     }
 }
 

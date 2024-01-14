@@ -8,11 +8,21 @@ using System.Linq;
 public partial class TreeGraph : GraphEdit {
     private TreeGraphContextMenu? _contextMenu;
     private Dictionary<int, Callable> _contextActions = new();
+    private BehaviorTree _tree = new();
 
     [Export] public RenameNodeModal? RenameNodeModal { get; private set; }
     [Export] public TextEdit? JsonOutput { get; private set; }
 
-    private BehaviorTree? _tree;
+    public event System.Action? RootChanged;
+
+    public GBTNode? RootNode {
+        get => _tree.RootNode;
+        set {
+            if (value == null) return;
+            _tree.SetRootNode(value);
+            RootChanged?.Invoke();
+        }
+    }
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready() {
@@ -90,6 +100,9 @@ public partial class TreeGraph : GraphEdit {
             AddChild(childGraphNode);
             i++;
         }
+        if (RootNode == null) {
+            RootNode = testRoot;
+        }
         Callable.From(() => {
             ArrangeNodes(); // TODO: better positioning algorithm
             RefreshConnections();
@@ -97,11 +110,14 @@ public partial class TreeGraph : GraphEdit {
     }
 
     public void CreateGraphNode(GBTNode dataNode) {
-        var rootGraphNode = new TreeGraphNode() {
+        var node = new TreeGraphNode() {
             PositionOffset = (GetViewport().GetMousePosition() + ScrollOffset) / Zoom,
             DataNode = dataNode,
         };
-        AddChild(rootGraphNode);
+        AddChild(node);
+        if (RootNode == null) {
+            RootNode = dataNode;
+        }
         Callable.From(() => {
             ArrangeNodes(); // TODO: better positioning algorithm
             RefreshConnections();
@@ -125,24 +141,13 @@ public partial class TreeGraph : GraphEdit {
         UpdateJsonOutput();
     }
 
-    private GBTNode? FindRootNode() {
-        var firstTopNode = GetChildren().FirstOrDefault(child => (child is TreeGraphNode node)
-                                                                 && node.DataNode != null
-                                                                 && node.DataNode.Parent == null)
-            as TreeGraphNode;
-        return firstTopNode?.DataNode;
-    }
-
     public void UpdateJsonOutput() {
         if (JsonOutput == null) return;
-        GBTNode? rootNode = FindRootNode();
-        if (rootNode == null) {
+        if (_tree.RootNode == null) {
             JsonOutput.Text = "(no root node)";
             return;
         }
-        var tree = new BehaviorTree();
-        tree.SetRootNode(rootNode);
-        var json = tree.SaveAsJson();
+        var json = _tree.SaveAsJson();
         json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(json), Formatting.Indented);
         JsonOutput.Text = json;
 
