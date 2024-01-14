@@ -73,11 +73,21 @@ public partial class TreeGraphNode : GraphNode {
     public void Delete() {
         Graph?.RemoveChild(this);
         QueueFree();
-        if (DataNode is IParentNode parent) {
-            foreach (GBTNode child in parent.Children) {
+        if (DataNode != null) {
+            if (DataNode.Parent != null) {
+                TreeGraphNode? parentNode = Graph?.FindGraphNode(DataNode.Parent.ID);
+                DataNode.Parent = null;
+                // Update the old parent's slots for the deleted child
+                parentNode?.Drawer?.RefreshSlots();
+            }
+        }
+        if (DataNode is IParentNode selfAsParent) {
+            GBTNode[] children = selfAsParent.Children.ToArray();
+            foreach (GBTNode child in children) {
                 child.Parent = null;
             }
         }
+        Callable.From(() => UpdateNode(false)).CallDeferred();
     }
 
     private void UpdateNode(bool forceUpdateDrawer) {
@@ -99,7 +109,7 @@ public partial class TreeGraphNode : GraphNode {
             }
         }
         Drawer.DrawSlots(DataNode);
-        Graph?.UpdateJsonOutput();
+        Graph?.RefreshConnections();
     }
 
     private void ShowRenameModal() {

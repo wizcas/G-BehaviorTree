@@ -10,6 +10,9 @@ public partial class TreeGraph : GraphEdit {
     private Dictionary<int, Callable> _contextActions = new();
     private BehaviorTree _tree = new();
 
+    private bool _shouldRefreshConnections = false;
+    private bool _shouldUpdateJsonOutput = false;
+
     [Export] public RenameNodeModal? RenameNodeModal { get; private set; }
     [Export] public TextEdit? JsonOutput { get; private set; }
 
@@ -42,6 +45,14 @@ public partial class TreeGraph : GraphEdit {
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(double delta) {
+        if (_shouldRefreshConnections) {
+            _shouldRefreshConnections = false;
+            DoRefreshConnections();
+        }
+        if (_shouldUpdateJsonOutput) {
+            _shouldUpdateJsonOutput = false;
+            DoUpdateJsonOutput();
+        }
     }
 
     private void OnRequestContextMenu(Vector2 pos) {
@@ -55,8 +66,7 @@ public partial class TreeGraph : GraphEdit {
         TreeGraphNode? sourceNode = FindGraphNode(fromNode);
         if (sourceNode == null) return;
 
-        var shouldUpdate = sourceNode.RequestSlotConnection(fromPort, toNode, toPort);
-        if (shouldUpdate) {
+        if (sourceNode.RequestSlotConnection(fromPort, toNode, toPort)) {
             RefreshConnections();
         }
     }
@@ -64,14 +74,15 @@ public partial class TreeGraph : GraphEdit {
     private void OnConnectionToEmpty(StringName fromNode, long fromPort, Vector2 releasePosition) {
         TreeGraphNode? sourceNode = FindGraphNode(fromNode);
         if (sourceNode == null) return;
-        var shouldUpdate = sourceNode.RequestSlotConnection(fromPort, string.Empty, -1);
-        if (shouldUpdate) {
+        if (sourceNode.RequestSlotConnection(fromPort, string.Empty, -1)) {
             RefreshConnections();
         }
     }
 
     private void OnDeleteNodesRequest(Array nodes) {
-        nodes.Select(nodeName => FindGraphNode((string)nodeName)).Where(node => node != null).ToList().ForEach(node => node!.Delete());
+        nodes.Select(nodeName => FindGraphNode((string)nodeName)).Where(node => node != null).ToList().ForEach(node => {
+            node!.Delete();
+        });
     }
 
     private void InitializeContextMenu() {
@@ -103,10 +114,7 @@ public partial class TreeGraph : GraphEdit {
         if (RootNode == null) {
             RootNode = testRoot;
         }
-        Callable.From(() => {
-            ArrangeNodes(); // TODO: better positioning algorithm
-            RefreshConnections();
-        }).CallDeferred();
+        RefreshConnections();
     }
 
     public void CreateGraphNode(GBTNode dataNode) {
@@ -118,10 +126,7 @@ public partial class TreeGraph : GraphEdit {
         if (RootNode == null) {
             RootNode = dataNode;
         }
-        Callable.From(() => {
-            ArrangeNodes(); // TODO: better positioning algorithm
-            RefreshConnections();
-        }).CallDeferred();
+        RefreshConnections();
     }
 
     public TreeGraphNode? FindGraphNode(string nodeName) {
@@ -130,6 +135,10 @@ public partial class TreeGraph : GraphEdit {
     }
 
     public void RefreshConnections() {
+        _shouldRefreshConnections = true;
+    }
+
+    private void DoRefreshConnections() {
         ClearConnections();
         foreach (TreeGraphNode graphNode in GetChildren().Where(child => child is TreeGraphNode node && node.Drawer != null).Cast<TreeGraphNode>()) {
             if (graphNode.DataNode == null) continue;
@@ -142,6 +151,10 @@ public partial class TreeGraph : GraphEdit {
     }
 
     public void UpdateJsonOutput() {
+        _shouldUpdateJsonOutput = true;
+    }
+
+    private void DoUpdateJsonOutput() {
         if (JsonOutput == null) return;
         if (_tree.RootNode == null) {
             JsonOutput.Text = "(no root node)";

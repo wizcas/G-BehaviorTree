@@ -78,6 +78,12 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
             return false;
         }
 
+        // Remove the connection from the requesting slot to its existing target
+        GBTNode? oldTargetDataNode = GraphNode?.Graph?.FindGraphNode(thisSlot.TargetNodeName)?.DataNode;
+        if (oldTargetDataNode != null) {
+            oldTargetDataNode.Parent = null;
+        }
+
         TreeGraphNode? toNode = GraphNode?.Graph?.FindGraphNode(toNodeName);
         if (toNode == null
             || toPort < 0
@@ -87,6 +93,7 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
             if (thisSlot.DataChild == null) {
                 return false;
             }
+            // Otherwise, it's an invalid connection which should be removed
             DataNode?.RemoveChild(thisSlot.DataChild);
             thisSlot.DataChild = null;
             PrintDebugInfo();
@@ -123,6 +130,12 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
                 }
                 otherSlot.DataChild = thisSlot.DataChild;
             }
+        } else {
+            if (toNode.DataNode.Parent != null) {
+                // Remove the slot connection from the target's old parent to the target
+                TreeGraphNode? oldParentOfTarget = GraphNode?.Graph?.FindGraphNode(toNode.DataNode.Parent.ID);
+                Callable.From(() => oldParentOfTarget?.Drawer?.RefreshSlots()).CallDeferred();
+            }
         }
         if (needMoveDataChild) {
             // Otherwise, move and add (if necessary) the target node to the given position
@@ -131,6 +144,17 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
         thisSlot.DataChild = toNode.DataNode;
         PrintDebugInfo();
         return true;
+    }
+
+    public override void RefreshSlots() {
+        base.RefreshSlots();
+        if (DataNode != null) {
+            foreach (ChildNodeSlot childSlot in GetSlots<ChildNodeSlot>()) {
+                if (childSlot.DataChild?.Parent != DataNode) {
+                    childSlot.DataChild = null;
+                }
+            }
+        }
     }
 
     private void PrintDebugInfo() {
