@@ -14,22 +14,28 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TreeGraph" type="GraphEdit" parent="." node_paths=PackedStringArray("RenameNodeModal")]
+[node name="HSplitContainer" type="HSplitContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="TreeGraph" type="GraphEdit" parent="HSplitContainer" node_paths=PackedStringArray("RenameNodeModal", "JsonOutput")]
+layout_mode = 2
+size_flags_horizontal = 3
+scroll_offset = Vector2(-332, -40)
 script = ExtResource("1_kvu8r")
 RenameNodeModal = NodePath("RenameNodeModal")
+JsonOutput = NodePath("../JsonOutput")
 
-[node name="ContextMenu" type="PopupMenu" parent="TreeGraph"]
+[node name="ContextMenu" type="PopupMenu" parent="HSplitContainer/TreeGraph"]
 script = ExtResource("2_h52ie")
 
-[node name="CreateNodeMenu" type="PopupMenu" parent="TreeGraph/ContextMenu"]
+[node name="CreateNodeMenu" type="PopupMenu" parent="HSplitContainer/TreeGraph/ContextMenu"]
 
-[node name="RenameNodeModal" type="Popup" parent="TreeGraph" node_paths=PackedStringArray("_editName", "_buttonOK")]
+[node name="RenameNodeModal" type="Popup" parent="HSplitContainer/TreeGraph" node_paths=PackedStringArray("_editName", "_buttonOK")]
 title = "Rename node"
 initial_position = 2
 size = Vector2i(300, 126)
@@ -38,7 +44,7 @@ script = ExtResource("3_tqr46")
 _editName = NodePath("MarginContainer/VBoxContainer/NameEdit")
 _buttonOK = NodePath("MarginContainer/VBoxContainer/ButtonSubmit")
 
-[node name="MarginContainer" type="MarginContainer" parent="TreeGraph/RenameNodeModal"]
+[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/TreeGraph/RenameNodeModal"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -49,35 +55,35 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TreeGraph/RenameNodeModal/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Node Name:"
 
-[node name="NameEdit" type="LineEdit" parent="TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+[node name="NameEdit" type="LineEdit" parent="HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 placeholder_text = "A descriptive name"
 select_all_on_focus = true
 
-[node name="Spacing" type="Control" parent="TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+[node name="Spacing" type="Control" parent="HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
-[node name="ButtonSubmit" type="Button" parent="TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+[node name="ButtonSubmit" type="Button" parent="HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 size_flags_horizontal = 8
 text = "OK"
 
-[node name="TreeGraphNode" type="GraphNode" parent="TreeGraph"]
+[node name="TreeGraphNode" type="GraphNode" parent="HSplitContainer/TreeGraph"]
 layout_mode = 0
-offset_left = 99.0
-offset_top = 136.0
-offset_right = 363.0
-offset_bottom = 222.0
+offset_left = 431.0
+offset_top = 176.0
+offset_right = 695.0
+offset_bottom = 262.0
 mouse_filter = 1
 position_offset = Vector2(99, 136)
 title = "aaaaaaaaaaaaa"
@@ -92,5 +98,12 @@ slot/0/right_icon = null
 slot/0/draw_stylebox = true
 script = ExtResource("2_ghf02")
 
-[node name="ChildNodeEntry" parent="TreeGraph/TreeGraphNode" instance=ExtResource("3_yehqu")]
+[node name="ChildNodeEntry" parent="HSplitContainer/TreeGraph/TreeGraphNode" instance=ExtResource("3_yehqu")]
 layout_mode = 2
+
+[node name="JsonOutput" type="TextEdit" parent="HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+editable = false
+wrap_mode = 1

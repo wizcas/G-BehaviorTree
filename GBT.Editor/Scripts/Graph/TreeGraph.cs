@@ -9,6 +9,7 @@ public partial class TreeGraph : GraphEdit {
     private Dictionary<int, Callable> _contextActions = new();
 
     [Export] public RenameNodeModal? RenameNodeModal { get; private set; }
+    [Export] public TextEdit? JsonOutput { get; private set; }
 
     private BehaviorTree? _tree;
 
@@ -18,6 +19,9 @@ public partial class TreeGraph : GraphEdit {
         PopupRequest += OnRequestContextMenu;
         ConnectionRequest += OnConnectionRequest;
         ConnectionToEmpty += OnConnectionToEmpty;
+        DeleteNodesRequest += OnDeleteNodesRequest;
+        ChildEnteredTree += (_) => UpdateJsonOutput();
+        ChildExitingTree += (_) => UpdateJsonOutput();
 
         // Clean up all temporary data
         foreach (Node? child in FindChildren("*", "TreeGraphNode")) {
@@ -53,6 +57,10 @@ public partial class TreeGraph : GraphEdit {
         if (shouldUpdate) {
             RefreshConnections();
         }
+    }
+
+    private void OnDeleteNodesRequest(Array nodes) {
+        nodes.Select(nodeName => FindGraphNode((string)nodeName)).Where(node => node != null).ToList().ForEach(node => node!.Delete());
     }
 
     private void InitializeContextMenu() {
@@ -113,5 +121,28 @@ public partial class TreeGraph : GraphEdit {
                 ConnectNode(conn.FromNode, conn.FromPort, conn.ToNode, conn.ToPort);
             }
         }
+        UpdateJsonOutput();
+    }
+
+    private GBTNode? FindRootNode() {
+        var firstTopNode = GetChildren().FirstOrDefault(child => (child is TreeGraphNode node)
+                                                                 && node.DataNode != null
+                                                                 && node.DataNode.Parent == null)
+            as TreeGraphNode;
+        return firstTopNode?.DataNode;
+    }
+
+    public void UpdateJsonOutput() {
+        if (JsonOutput == null) return;
+        GBTNode? rootNode = FindRootNode();
+        if (rootNode == null) {
+            JsonOutput.Text = "(no root node)";
+            return;
+        }
+        var tree = new BehaviorTree();
+        tree.SetRootNode(rootNode);
+        var json = tree.SaveAsJson();
+        JsonOutput.Text = json;
+
     }
 }

@@ -30,13 +30,7 @@ public partial class TreeGraphNode : GraphNode {
     public override void _Ready() {
         Graph = GetNode<TreeGraph>("..");
         Resizable = true;
-        GetTitlebarHBox().GuiInput += async (e) => {
-            if (e is InputEventMouseButton mouseEvent && mouseEvent.ButtonIndex == MouseButton.Left && mouseEvent.DoubleClick) {
-                // Wait for the mouse event to finish, otherwise it'll drag the node after modal closed
-                await Task.Delay(200);
-                ShowRenameModal();
-            }
-        };
+        GetTitlebarHBox().GuiInput += OnTitlebarGuiInput;
         var renameButton = new Button() { Text = "Re" }; // TODO: icon
         renameButton.Pressed += ShowRenameModal;
         GetTitlebarHBox().AddChild(renameButton);
@@ -44,9 +38,39 @@ public partial class TreeGraphNode : GraphNode {
             Graph.RenameNodeModal.NameChanged += OnNodeNameChanged;
         }
     }
-
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(double delta) {
+    private async void OnTitlebarGuiInput(InputEvent e) {
+        if (e is InputEventMouseButton mouseEvent && mouseEvent.ButtonIndex == MouseButton.Left && mouseEvent.DoubleClick) {
+            // Wait for the mouse event to finish, otherwise it'll drag the node after modal closed
+            await Task.Delay(200);
+            ShowRenameModal();
+        }
+    }
+    private void OnNodeNameChanged(TreeGraphNode? sender, string name) {
+        var graphDataUpdated = false;
+        if (sender == this) {
+            if (DataNode != null) {
+                DataNode.Name = name;
+            }
+            Title = name;
+        } else if (DataNode is IParentNode parent) {
+            // rerender slots in case they should reflect the name change of the child nodes
+            if (parent.Children.Any(child => sender != null && child == sender?.DataNode)) {
+                UpdateNode(false);
+                graphDataUpdated = true;
+            }
+        }
+        if (!graphDataUpdated) {
+            Graph?.UpdateJsonOutput();
+        }
+    }
+    public void Delete() {
+        Graph?.RemoveChild(this);
+        QueueFree();
+        if (DataNode is IParentNode parent) {
+            foreach (GBTNode child in parent.Children) {
+                child.Parent = null;
+            }
+        }
     }
 
     private void UpdateNode(bool forceUpdateDrawer) {
@@ -68,24 +92,11 @@ public partial class TreeGraphNode : GraphNode {
             }
         }
         Drawer.DrawSlots(DataNode);
+        Graph?.UpdateJsonOutput();
     }
 
     private void ShowRenameModal() {
         Graph?.RenameNodeModal?.Show(this);
-    }
-
-    private void OnNodeNameChanged(TreeGraphNode? sender, string name) {
-        if (sender == this) {
-            if (DataNode != null) {
-                DataNode.Name = name;
-            }
-            Title = name;
-        } else if (DataNode is IParentNode p) {
-            // rerender slots in case they should reflect the name change of the child nodes
-            if (p.Children.Any(child => sender != null && child == sender?.DataNode)) {
-                UpdateNode(false);
-            }
-        }
     }
 
     public bool RequestSlotConnection(long fromPort, string toNodeName, long toPort) {

@@ -103,6 +103,9 @@ public partial class BehaviorTree {
     public byte[] Save() {
         return MessagePackSerializer.Serialize(WriteSavedData());
     }
+    public string SaveAsJson() {
+        return MessagePackSerializer.ConvertToJson(Save());
+    }
     public void Load(byte[] bin) {
         ReadSavedData(MessagePackSerializer.Deserialize<Data>(bin));
     }
