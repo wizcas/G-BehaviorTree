@@ -6,8 +6,11 @@
     <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'ios' ">net8.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include ="..\GBT.Sharp\GBT.Sharp.Core\GBT.Sharp.Core.csproj" />
+    <ProjectReference Include="..\GBT.Sharp\GBT.Sharp.Core\GBT.Sharp.Core.csproj" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@ using GBT;
 using GBT.Nodes;
 using Godot;
 using Godot.Collections;
+using Newtonsoft.Json;
 using System.Linq;
 
 public partial class TreeGraph : GraphEdit {
@@ -142,6 +143,7 @@ public partial class TreeGraph : GraphEdit {
         var tree = new BehaviorTree();
         tree.SetRootNode(rootNode);
         var json = tree.SaveAsJson();
+        json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(json), Formatting.Indented);
         JsonOutput.Text = json;
 
     }
