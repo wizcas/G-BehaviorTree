@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://e7nyx47xy7c3"]
+[gd_scene load_steps=8 format=3 uid="uid://e7nyx47xy7c3"]
 
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraph.cs" id="1_kvu8r"]
 [ext_resource type="Script" path="res://Scripts/Graph/Nodes/TreeGraphNode.cs" id="2_ghf02"]
@@ -6,6 +6,9 @@
 [ext_resource type="Script" path="res://Scripts/Graph/RenameNodeModal.cs" id="3_tqr46"]
 [ext_resource type="PackedScene" uid="uid://b7un6qlk4ikgk" path="res://Controls/ChildNodeEntry.tscn" id="3_yehqu"]
 [ext_resource type="CodeHighlighter" uid="uid://saaomcxjms6w" path="res://json-highlighter.tres" id="6_o8q46"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ic0kt"]
+bg_color = Color(0.0823529, 0.0823529, 0.0823529, 1)
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -15,28 +18,65 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HSplitContainer" type="HSplitContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 0
 
-[node name="TreeGraph" type="GraphEdit" parent="HSplitContainer" node_paths=PackedStringArray("RenameNodeModal", "JsonOutput")]
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ic0kt")
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 2
+
+[node name="MenuBar" type="MenuBar" parent="VBoxContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="File" type="PopupMenu" parent="VBoxContainer/PanelContainer/MarginContainer/MenuBar"]
+title = "File"
+size = Vector2i(100, 147)
+item_count = 6
+item_0/text = "New"
+item_0/id = 0
+item_1/text = "Open"
+item_1/id = 1
+item_2/text = "Save"
+item_2/id = 2
+item_3/text = "Save as..."
+item_3/id = 3
+item_4/text = ""
+item_4/id = 4
+item_4/separator = true
+item_5/text = "Quit"
+item_5/id = 5
+
+[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TreeGraph" type="GraphEdit" parent="VBoxContainer/HSplitContainer" node_paths=PackedStringArray("RenameNodeModal", "JsonOutput")]
 layout_mode = 2
 size_flags_horizontal = 3
-scroll_offset = Vector2(-332, -40)
+scroll_offset = Vector2(-332, -208)
 script = ExtResource("1_kvu8r")
 RenameNodeModal = NodePath("RenameNodeModal")
 JsonOutput = NodePath("../JsonOutput")
 
-[node name="ContextMenu" type="PopupMenu" parent="HSplitContainer/TreeGraph"]
+[node name="ContextMenu" type="PopupMenu" parent="VBoxContainer/HSplitContainer/TreeGraph"]
 script = ExtResource("2_h52ie")
 
-[node name="CreateNodeMenu" type="PopupMenu" parent="HSplitContainer/TreeGraph/ContextMenu"]
+[node name="CreateNodeMenu" type="PopupMenu" parent="VBoxContainer/HSplitContainer/TreeGraph/ContextMenu"]
 
-[node name="RenameNodeModal" type="Popup" parent="HSplitContainer/TreeGraph" node_paths=PackedStringArray("_editName", "_buttonOK")]
+[node name="RenameNodeModal" type="Popup" parent="VBoxContainer/HSplitContainer/TreeGraph" node_paths=PackedStringArray("_editName", "_buttonOK")]
 title = "Rename node"
 initial_position = 2
 size = Vector2i(300, 126)
@@ -45,7 +85,7 @@ script = ExtResource("3_tqr46")
 _editName = NodePath("MarginContainer/VBoxContainer/NameEdit")
 _buttonOK = NodePath("MarginContainer/VBoxContainer/ButtonSubmit")
 
-[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/TreeGraph/RenameNodeModal"]
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/HSplitContainer/TreeGraph/RenameNodeModal"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -56,37 +96,37 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="VBoxContainer/HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Node Name:"
 
-[node name="NameEdit" type="LineEdit" parent="HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+[node name="NameEdit" type="LineEdit" parent="VBoxContainer/HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 placeholder_text = "A descriptive name"
 select_all_on_focus = true
 
-[node name="Spacing" type="Control" parent="HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+[node name="Spacing" type="Control" parent="VBoxContainer/HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
-[node name="ButtonSubmit" type="Button" parent="HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
+[node name="ButtonSubmit" type="Button" parent="VBoxContainer/HSplitContainer/TreeGraph/RenameNodeModal/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 size_flags_horizontal = 8
 text = "OK"
 
-[node name="TreeGraphNode" type="GraphNode" parent="HSplitContainer/TreeGraph"]
+[node name="TreeGraphNode" type="GraphNode" parent="VBoxContainer/HSplitContainer/TreeGraph"]
 layout_mode = 0
-offset_left = 431.0
-offset_top = 176.0
-offset_right = 695.0
-offset_bottom = 262.0
+offset_left = 77.0
+offset_top = 221.0
+offset_right = 341.0
+offset_bottom = 307.0
 mouse_filter = 1
-position_offset = Vector2(99, 136)
+position_offset = Vector2(-255, 13)
 title = "aaaaaaaaaaaaa"
 slot/0/left_enabled = false
 slot/0/left_type = 0
@@ -99,10 +139,10 @@ slot/0/right_icon = null
 slot/0/draw_stylebox = true
 script = ExtResource("2_ghf02")
 
-[node name="ChildNodeEntry" parent="HSplitContainer/TreeGraph/TreeGraphNode" instance=ExtResource("3_yehqu")]
+[node name="ChildNodeEntry" parent="VBoxContainer/HSplitContainer/TreeGraph/TreeGraphNode" instance=ExtResource("3_yehqu")]
 layout_mode = 2
 
-[node name="JsonOutput" type="TextEdit" parent="HSplitContainer"]
+[node name="JsonOutput" type="TextEdit" parent="VBoxContainer/HSplitContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.5
