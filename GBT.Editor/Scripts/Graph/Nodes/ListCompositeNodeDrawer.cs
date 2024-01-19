@@ -5,11 +5,12 @@ using System.Diagnostics;
 using System.Linq;
 
 public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
-    public ListCompositeNodeDrawer(TreeGraphNode graphNode) : base(graphNode) { }
+    public ListCompositeNodeDrawer(TreeGraphNode graphNode) : base(graphNode) {
+    }
 
     private PackedScene _slotScene = GD.Load<PackedScene>("res://Controls/ChildNodeEntry.tscn");
 
-    public override void DrawSlots(ListCompositeNode node, ref int slotIndex) {
+    protected override void OnDrawSlots(ListCompositeNode node, ref int slotIndex) {
         var buttonAddChild = new Button() {
             Name = "ButtonAddChild",
             Text = "Add Child",
@@ -20,12 +21,16 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
             AddSlot(child);
             slotIndex++;
         }
+        if (IsFirstDraw && !node.Children.Any()) {
+            AddSlot(null);
+        }
         Callable.From(Refresh).CallDeferred();
     }
 
     private ChildNodeSlot AddSlot(GBTNode? child) {
         ChildNodeSlot slot = _slotScene.Instantiate<ChildNodeSlot>();
         GraphNode.AddChild(slot);
+        // add the slot before the "Add Child" button
         GraphNode.MoveChild(slot, -2);
         slot.DataChild = child;
         if (slot.ButtonMoveUp != null) {

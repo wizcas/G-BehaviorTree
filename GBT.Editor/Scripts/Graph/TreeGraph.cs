@@ -47,11 +47,11 @@ public partial class TreeGraph : GraphEdit {
     public override void _Process(double delta) {
         if (_shouldRefreshConnections) {
             _shouldRefreshConnections = false;
-            DoRefreshConnections();
+            ExecuteRefreshConnections();
         }
         if (_shouldUpdateJsonOutput) {
             _shouldUpdateJsonOutput = false;
-            DoUpdateJsonOutput();
+            ExecuteUpdateJsonOutput();
         }
     }
 
@@ -138,7 +138,7 @@ public partial class TreeGraph : GraphEdit {
         _shouldRefreshConnections = true;
     }
 
-    private void DoRefreshConnections() {
+    private void ExecuteRefreshConnections() {
         ClearConnections();
         foreach (TreeGraphNode graphNode in GetChildren().Where(child => child is TreeGraphNode node && node.Drawer != null).Cast<TreeGraphNode>()) {
             if (graphNode.DataNode == null) continue;
@@ -154,7 +154,7 @@ public partial class TreeGraph : GraphEdit {
         _shouldUpdateJsonOutput = true;
     }
 
-    private void DoUpdateJsonOutput() {
+    private void ExecuteUpdateJsonOutput() {
         if (JsonOutput == null) return;
         if (_tree.RootNode == null) {
             JsonOutput.Text = "(no root node)";

@@ -21,8 +21,10 @@ public abstract class GBTNodeDrawer(TreeGraphNode graphNode) {
     public const int ChildSlotStartIndex = 1;
     public TreeGraphNode GraphNode { get; } = graphNode;
     public GBTNode? DataNode => GraphNode.DataNode;
+    protected bool IsFirstDraw = true;
 
-    public virtual void DrawSlots(GBTNode node) {
+    public void DrawSlots(GBTNode node) {
+        BeforeDrawSlots(node);
         if (GraphNode == null) {
             throw new InvalidOperationException("This drawer is not attached to a GraphNode");
         }
@@ -31,8 +33,13 @@ public abstract class GBTNodeDrawer(TreeGraphNode graphNode) {
         GraphNode.SetSlot(ParentSlotIndex,
             true, SlotMetadata.Node.Type, SlotMetadata.Node.Color,
             false, SlotMetadata.Node.Type, SlotMetadata.Node.Color);
-
+        OnDrawSlots(node);
+        AfterDrawSlots(node);
+        IsFirstDraw = false;
     }
+    protected virtual void BeforeDrawSlots(GBTNode node) { }
+    protected virtual void AfterDrawSlots(GBTNode node) { }
+    protected virtual void OnDrawSlots(GBTNode node) { }
 
     public IEnumerable<ISlot> GetSlots() {
         return GraphNode.GetChildren().Where(child => child is ISlot slot && slot.IsValid).Cast<ISlot>();
@@ -59,8 +66,8 @@ public abstract class GBTNodeDrawer<TDataNode> : GBTNodeDrawer where TDataNode :
     public new TDataNode? DataNode => GraphNode.DataNode as TDataNode;
     public GBTNodeDrawer(TreeGraphNode graphNode) : base(graphNode) { }
 
-    public sealed override void DrawSlots(GBTNode node) {
-        base.DrawSlots(node);
+    protected sealed override void OnDrawSlots(GBTNode node) {
+        base.OnDrawSlots(node);
         if (node is not TDataNode typedNode) {
             GraphNode.AddChild(new Label() {
                 Name = "WrongGBTNodeType",
@@ -68,8 +75,8 @@ public abstract class GBTNodeDrawer<TDataNode> : GBTNodeDrawer where TDataNode :
             });
         } else {
             var slotIndex = ChildSlotStartIndex;
-            DrawSlots(typedNode, ref slotIndex);
+            OnDrawSlots(typedNode, ref slotIndex);
         }
     }
-    public abstract void DrawSlots(TDataNode node, ref int slotIndex);
+    protected abstract void OnDrawSlots(TDataNode node, ref int slotIndex);
 }
