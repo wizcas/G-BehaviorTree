@@ -83,70 +83,73 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
             return false;
         }
 
-        // Remove the connection from the requesting slot to its existing target
-        GBTNode? oldTargetDataNode = GraphNode?.Graph?.FindGraphNode(thisSlot.TargetNodeName)?.DataNode;
-        if (oldTargetDataNode != null) {
-            oldTargetDataNode.Parent = null;
-        }
+        GBTNode? prevTargetNode = GraphNode?.Graph?.FindGraphNode(thisSlot.TargetNodeName)?.DataNode;
 
         TreeGraphNode? toNode = GraphNode?.Graph?.FindGraphNode(toNodeName);
         if (toNode == null
             || toPort < 0
             || toNode.GetSlotTypeLeft(toNode.Drawer?.FindSlotByInPort(toPort)?.SlotIndex ?? -1) != SlotMetadata.Node.Type) {
-            // If the target node or port is invalid, empty this slot
-            // If the slot is already empty, do nothing
+            // When the target node or port is invalid
             if (thisSlot.DataChild == null) {
+                // If the slot is already empty, do nothing
                 return false;
             }
             // Otherwise, it's an invalid connection which should be removed
             DataNode?.RemoveChild(thisSlot.DataChild);
             thisSlot.DataChild = null;
-            PrintDebugInfo();
-            return true;
-        }
-
-        if (toPort != ParentSlotIndex) {
-            throw new InvalidOperationException("currenly GBTNode can only connect to a Parent slot");
-        }
-
-        if (toNode.DataNode == null) {
-            throw new InvalidOperationException("the target node is not a GBTNode");
-        }
-
-        if (toNode.DataNode == thisSlot.DataChild) {
-            // If the slot is already set to the target node, do nothing
-            return false;
-        }
-
-        var thisChildIndex = thisSlot.GetDataChildIndex();
-        var needMoveDataChild = true;
-
-        // So far it is guaranteed that there is a GBTNode to attach
-        // AND it is different from the one bound to this slot, if any
-        if (toNode.DataNode.Parent == DataNode) {
-            // If the parent is unchanged but the child slot is different,
-            // we will try to swtich the occupied slots
-            if (GetSlots().FirstOrDefault(slot => slot is ChildNodeSlot cs && cs.DataChild == toNode.DataNode) is ChildNodeSlot otherSlot) {
-                if (thisChildIndex > -1) {
-                    // Switch only if both slots have attached GBTNodes
-                    // If they are switched, we don't need further node-moving
-                    DataNode.SwitchChild(thisChildIndex, otherSlot.GetDataChildIndex());
-                    needMoveDataChild = false;
-                }
-                otherSlot.DataChild = thisSlot.DataChild;
-            }
         } else {
-            if (toNode.DataNode.Parent != null) {
-                // Remove the slot connection from the target's old parent to the target
-                TreeGraphNode? oldParentOfTarget = GraphNode?.Graph?.FindGraphNode(toNode.DataNode.Parent.ID);
-                Callable.From(() => oldParentOfTarget?.Drawer?.RefreshSlots()).CallDeferred();
+            // When there is indeed a target node to connect to
+            if (toPort != ParentSlotIndex) {
+                throw new InvalidOperationException("currenly GBTNode can only connect to a Parent slot");
+            }
+
+            if (toNode.DataNode == null) {
+                throw new InvalidOperationException("the target node is not a GBTNode");
+            }
+
+            if (toNode.DataNode == thisSlot.DataChild) {
+                // If the connection is not changed, do nothing
+                return false;
+            }
+
+            var currentChildDataIndex = thisSlot.GetDataChildIndex();
+            var willMoveDataChild = true;
+
+            // So far it is guaranteed that there is a GBTNode to attach
+            // AND it is different from the one bound to this slot, if any
+            if (toNode.DataNode.Parent == DataNode) {
+                // If the parent is unchanged but the child slot is reassigned,
+                // we will try to swtich the occupied slots
+                if (GetSlots().FirstOrDefault(slot => slot is ChildNodeSlot cs && cs.DataChild == toNode.DataNode) is ChildNodeSlot prevAssignedSlot) {
+                    if (currentChildDataIndex > -1) {
+                        // Switch the actual children data only if both slots have attached GBTNodes
+                        // If they are switched, we don't need further node-moving below
+                        DataNode.SwitchChild(currentChildDataIndex, prevAssignedSlot.GetDataChildIndex());
+                        willMoveDataChild = false;
+                    }
+                    // Old slot's binding data needs to be updated
+                    // (this slot's binding data will be updated below once for all)
+                    prevAssignedSlot.DataChild = thisSlot.DataChild;
+                }
+            } else {
+                if (toNode.DataNode.Parent != null) {
+                    // Update the graph connection of the target's old parent in the next frame
+                    // after we've reassigned target's parent in this frame (by call MoveChild)
+                    TreeGraphNode? oldParentOfTarget = GraphNode?.Graph?.FindGraphNode(toNode.DataNode.Parent.ID);
+                    Callable.From(() => oldParentOfTarget?.Drawer?.RefreshSlots()).CallDeferred();
+                }
+            }
+            if (willMoveDataChild) {
+                // Otherwise, move and add (if necessary) the target node to the given position
+                DataNode.MoveChild(toNode.DataNode, thisSlot.GetDesignedChildIndex());
+            }
+            thisSlot.DataChild = toNode.DataNode;
+
+            // check if the slot's old target child is now an orphan
+            if (prevTargetNode != null && !GetSlots().Any(slot => slot is ChildNodeSlot cs && cs.DataChild == prevTargetNode)) {
+                prevTargetNode.Parent = null;
             }
         }
-        if (needMoveDataChild) {
-            // Otherwise, move and add (if necessary) the target node to the given position
-            DataNode.MoveChild(toNode.DataNode, thisSlot.GetDesignedChildIndex());
-        }
-        thisSlot.DataChild = toNode.DataNode;
         PrintDebugInfo();
         return true;
     }

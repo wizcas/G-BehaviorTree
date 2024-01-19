@@ -122,6 +122,17 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         _children[b] = tmp;
     }
 
+    protected override void BeforeSave() {
+        base.BeforeSave();
+        foreach (GBTNode child in _children) {
+            child.OrderKey = _children.IndexOf(child);
+        }
+    }
+    public override void AfterLoad() {
+        base.AfterLoad();
+        _children.Sort((a, b) => a.OrderKey.CompareTo(b.OrderKey));
+    }
+
     public class Ctx : NodeContext<ListCompositeNode> {
         private int _currentChildIndex = -1;
         private List<GBTNode> Children => Node._children;

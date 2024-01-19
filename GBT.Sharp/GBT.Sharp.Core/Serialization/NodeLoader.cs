@@ -16,8 +16,12 @@ public class NodeLoader {
         return data.LoadNode(_cache);
     }
     public Dictionary<string, GBTNode> LoadAll(IEnumerable<GBTNode.Data> datas) {
+        var loadedNodes = new List<GBTNode>();
         foreach (GBTNode.Data data in datas) {
-            data.LoadNode(_cache);
+            loadedNodes.Add(data.LoadNode(_cache));
+        }
+        foreach (GBTNode node in loadedNodes) {
+            node.AfterLoad();
         }
         return _cache;
     }

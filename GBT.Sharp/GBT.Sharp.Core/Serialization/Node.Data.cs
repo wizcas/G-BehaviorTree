@@ -12,6 +12,7 @@ public partial class GBTNode {
          string ID,
          string Name,
          string? ParentID,
+         object OrderKey,
          bool IsDisabled) {
         /// <summary>
         /// Arbitrary data that can be saved and loaded.
@@ -19,7 +20,7 @@ public partial class GBTNode {
         public Dictionary<string, object?> Extra { get; set; } = new();
 
         public static Data FromNode(GBTNode node) {
-            return new(node.GetType(), node.ID, node.Name, node.Parent?.ID, node.IsDisabled);
+            return new(node.GetType(), node.ID, node.Name, node.Parent?.ID, node.OrderKey, node.IsDisabled);
         }
         public readonly GBTNode LoadNode(Dictionary<string, GBTNode> loadedNodes) {
             var node = (GBTNode)Activator.CreateInstance(NodeType, new object[] { ID, Name })!;

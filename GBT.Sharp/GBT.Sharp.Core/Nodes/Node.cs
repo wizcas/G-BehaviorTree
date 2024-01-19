@@ -9,6 +9,7 @@ namespace GBT.Nodes;
 public abstract partial class GBTNode {
     public string ID { get; }
     public string Name { get; set; }
+    public IComparable OrderKey { get; set; } = 0;
 
 
     private GBTNode? _parent;
@@ -165,6 +166,7 @@ public abstract partial class GBTNode {
     }
 
     public List<Data> Save(List<Data>? savedNodes) {
+        BeforeSave();
         savedNodes ??= new();
         savedNodes.Add(WriteSavedData());
         if (this is IParentNode parent) {
@@ -174,6 +176,8 @@ public abstract partial class GBTNode {
         }
         return savedNodes;
     }
+    protected virtual void BeforeSave() { }
+    public virtual void AfterLoad() { }
     public virtual Data WriteSavedData() {
         return Data.FromNode(this);
     }
