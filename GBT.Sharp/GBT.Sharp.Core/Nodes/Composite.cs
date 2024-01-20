@@ -86,7 +86,9 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
     public bool RemoveChild(GBTNode child) {
         var removed = _children.Remove(child);
         if (removed) {
-            child.Runtime = null;
+            if (child.Runtime?.Tree?.RootNode != child) {
+                child.Runtime = null;
+            }
             child.Parent = null;
         }
         return removed;
