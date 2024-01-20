@@ -10,11 +10,14 @@ public partial class BehaviorTree {
     public static TreeLogger Logger { get; } = new TreeLogger();
 
     public string ID { get; private set; } = Nanoid.Generate();
+    public string Name { get; set; } = "Behavior Tree";
+    public string? FilePath { get; set; } = null;
 
     private TreeRuntime _runtime;
     private GBTNode? _rootNode;
 
     public GBTNode? RootNode => _rootNode;
+    public event Action<BehaviorTree>? RootNodeChanged;
 
     public TreeRuntime Runtime {
         get => _runtime;
@@ -30,9 +33,12 @@ public partial class BehaviorTree {
         _runtime = runtime ?? CreateRuntime();
     }
 
-    public void SetRootNode(GBTNode rootNode) {
+    public void SetRootNode(GBTNode? rootNode) {
         _rootNode = rootNode;
-        _rootNode.Runtime = _runtime;
+        if (_rootNode != null) {
+            _rootNode.Runtime = _runtime;
+        }
+        RootNodeChanged?.Invoke(this);
     }
 
     public void Tick() {
@@ -80,12 +86,14 @@ public partial class BehaviorTree {
 
     private Data WriteSavedData() {
         return new Data(
-            ID: ID,
+            ID,
+            Name,
             Nodes: _rootNode?.Save(null).ToArray() ?? Array.Empty<GBTNode.Data>(),
             RootID: _rootNode?.ID ?? string.Empty);
     }
     private void ReadSavedData(Data data) {
         ID = data.ID;
+        Name = data.Name;
         if (data.Nodes.Length > 0) {
             var nodeLoader = new NodeLoader();
             Dictionary<string, GBTNode> nodes = nodeLoader.LoadAll(data.Nodes);
@@ -102,6 +110,9 @@ public partial class BehaviorTree {
     public void Save(IBufferWriter<byte> writer) {
         MessagePackSerializer.Serialize(writer, WriteSavedData());
     }
+    public void Save(Stream stream) {
+        MessagePackSerializer.Serialize(stream, WriteSavedData());
+    }
     public byte[] Save() {
         return MessagePackSerializer.Serialize(WriteSavedData());
     }
@@ -113,5 +124,8 @@ public partial class BehaviorTree {
     }
     public void Load(ReadOnlyMemory<byte> buffer) {
         ReadSavedData(MessagePackSerializer.Deserialize<Data>(buffer));
+    }
+    public void Load(Stream stream) {
+        ReadSavedData(MessagePackSerializer.Deserialize<Data>(stream));
     }
 }

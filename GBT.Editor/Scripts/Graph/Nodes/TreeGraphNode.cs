@@ -44,6 +44,13 @@ public partial class TreeGraphNode : GraphNode {
         if (Graph.RenameNodeModal != null) {
             Graph.RenameNodeModal.NameChanged += OnNodeNameChanged;
         }
+        UpdateRootState();
+    }
+    public override void _ExitTree() {
+        base._ExitTree();
+        if (Graph != null) {
+            Graph.RootChanged -= UpdateRootState;
+        }
     }
     private async void OnTitlebarGuiInput(InputEvent e) {
         if (e is InputEventMouseButton mouseEvent && mouseEvent.ButtonIndex == MouseButton.Left && mouseEvent.DoubleClick) {

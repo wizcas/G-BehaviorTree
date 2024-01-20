@@ -19,7 +19,7 @@ public abstract partial class GBTNode {
 
     private TreeRuntime? _runtime;
     public TreeRuntime? Runtime {
-        get => _runtime;
+        get => _runtime ?? Parent?.Runtime;
         set {
             if (_runtime != value) {
                 _runtime = value;
@@ -147,7 +147,12 @@ public abstract partial class GBTNode {
             oldParent.RemoveChild(this);
         }
         _parent = parent;
-        (parent as IParentNode)?.AddChild(this);
+        if (_parent != null) {
+            (_parent as IParentNode)?.AddChild(this);
+            if (Runtime?.Tree.RootNode == this) {
+                Runtime?.Tree.SetRootNode(_parent);
+            }
+        }
     }
 
     public override string ToString() {

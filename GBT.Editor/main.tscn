@@ -1,5 +1,6 @@
-[gd_scene load_steps=8 format=3 uid="uid://e7nyx47xy7c3"]
+[gd_scene load_steps=9 format=3 uid="uid://e7nyx47xy7c3"]
 
+[ext_resource type="Script" path="res://Scripts/Commands/FileMenu.cs" id="1_41idx"]
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraph.cs" id="1_kvu8r"]
 [ext_resource type="Script" path="res://Scripts/Graph/Nodes/TreeGraphNode.cs" id="2_ghf02"]
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraphContextMenu.cs" id="2_h52ie"]
@@ -58,6 +59,7 @@ item_4/id = 4
 item_4/separator = true
 item_5/text = "Quit"
 item_5/id = 5
+script = ExtResource("1_41idx")
 
 [node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -66,7 +68,6 @@ size_flags_vertical = 3
 [node name="TreeGraph" type="GraphEdit" parent="VBoxContainer/HSplitContainer" node_paths=PackedStringArray("RenameNodeModal", "JsonOutput")]
 layout_mode = 2
 size_flags_horizontal = 3
-scroll_offset = Vector2(-332, -208)
 script = ExtResource("1_kvu8r")
 RenameNodeModal = NodePath("RenameNodeModal")
 JsonOutput = NodePath("../JsonOutput")
@@ -121,10 +122,10 @@ text = "OK"
 
 [node name="TreeGraphNode" type="GraphNode" parent="VBoxContainer/HSplitContainer/TreeGraph"]
 layout_mode = 0
-offset_left = 77.0
-offset_top = 221.0
-offset_right = 341.0
-offset_bottom = 307.0
+offset_left = -255.0
+offset_top = 13.0
+offset_right = 9.0
+offset_bottom = 99.0
 mouse_filter = 1
 position_offset = Vector2(-255, 13)
 title = "aaaaaaaaaaaaa"

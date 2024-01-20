@@ -8,7 +8,7 @@ using System.Linq;
 public partial class TreeGraph : GraphEdit {
     private TreeGraphContextMenu? _contextMenu;
     private Dictionary<int, Callable> _contextActions = new();
-    private BehaviorTree _tree = new();
+    private BehaviorTree Tree => GraphManager.GetInstance().EditingTree;
 
     private bool _shouldRefreshConnections = false;
     private bool _shouldUpdateJsonOutput = false;
@@ -19,11 +19,10 @@ public partial class TreeGraph : GraphEdit {
     public event System.Action? RootChanged;
 
     public GBTNode? RootNode {
-        get => _tree.RootNode;
+        get => Tree.RootNode;
         set {
-            if (value == null) return;
-            _tree.SetRootNode(value);
-            RootChanged?.Invoke();
+            if (value == Tree.RootNode) return;
+            Tree.SetRootNode(value);
         }
     }
 
@@ -37,10 +36,8 @@ public partial class TreeGraph : GraphEdit {
         ChildEnteredTree += (_) => UpdateJsonOutput();
         ChildExitingTree += (_) => UpdateJsonOutput();
 
-        // Clean up all temporary data
-        foreach (Node? child in FindChildren("*", "TreeGraphNode")) {
-            RemoveChild(child);
-        }
+        GraphManager.GetInstance().RequestReloadTree += Reload;
+        Reload();
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -107,6 +104,7 @@ public partial class TreeGraph : GraphEdit {
         foreach (GBTNode testChild in testRoot.Children) {
             var childGraphNode = new TreeGraphNode() {
                 DataNode = testChild,
+                PositionOffset = rootGraphNode.PositionOffset + new Vector2(400, (i - 1) * 200),
             };
             AddChild(childGraphNode);
             i++;
@@ -117,7 +115,7 @@ public partial class TreeGraph : GraphEdit {
         RefreshConnections();
     }
 
-    public void CreateGraphNode(GBTNode dataNode) {
+    public void CreateGraphNode(GBTNode dataNode, bool skipRefresh = false) {
         var node = new TreeGraphNode() {
             PositionOffset = (GetViewport().GetMousePosition() + ScrollOffset) / Zoom,
             DataNode = dataNode,
@@ -126,7 +124,23 @@ public partial class TreeGraph : GraphEdit {
         if (RootNode == null) {
             RootNode = dataNode;
         }
+        if (!skipRefresh) {
+            RefreshConnections();
+        }
+    }
+
+    public void Reload() {
+        Tree.RootNodeChanged += (tree) => RootChanged?.Invoke();
+        TreeGraphNode[] nodes = GetChildren().Where(child => child is TreeGraphNode).Cast<TreeGraphNode>().ToArray();
+        foreach (TreeGraphNode? node in nodes) {
+            RemoveChild(node);
+            node.Free();
+        }
+        foreach (GBTNode treeNode in Tree.Flatten()) {
+            CreateGraphNode(treeNode, skipRefresh: true);
+        }
         RefreshConnections();
+        Callable.From(ArrangeNodes).CallDeferred();
     }
 
     public TreeGraphNode? FindGraphNode(string nodeName) {
@@ -156,11 +170,11 @@ public partial class TreeGraph : GraphEdit {
 
     private void ExecuteUpdateJsonOutput() {
         if (JsonOutput == null) return;
-        if (_tree.RootNode == null) {
+        if (Tree.RootNode == null) {
             JsonOutput.Text = "(no root node)";
             return;
         }
-        var json = _tree.SaveAsJson();
+        var json = Tree.SaveAsJson();
         json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(json), Formatting.Indented);
         JsonOutput.Text = json;
 

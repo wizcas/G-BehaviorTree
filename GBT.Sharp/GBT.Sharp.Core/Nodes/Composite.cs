@@ -71,9 +71,9 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
     }
 
     protected void AttachChildToHierarchy(GBTNode child) {
-        child.Runtime = Runtime;
         // In case Child is not added by child.SetParent()
         child.Parent = this;
+        //child.Runtime = Runtime;
     }
 
     public IParentNode AddChildren(params GBTNode[] children) {
