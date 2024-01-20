@@ -49,9 +49,6 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
             BehaviorTree.Logger.Info($"running node is reset because context is updated", this);
             Reset();
         }
-        foreach (GBTNode child in _children) {
-            child.Runtime = Runtime;
-        }
     }
     public override void Reset() {
         base.Reset();
@@ -73,7 +70,6 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
     protected void AttachChildToHierarchy(GBTNode child) {
         // In case Child is not added by child.SetParent()
         child.Parent = this;
-        //child.Runtime = Runtime;
     }
 
     public IParentNode AddChildren(params GBTNode[] children) {
@@ -86,9 +82,6 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
     public bool RemoveChild(GBTNode child) {
         var removed = _children.Remove(child);
         if (removed) {
-            if (child.Runtime?.Tree?.RootNode != child) {
-                child.Runtime = null;
-            }
             child.Parent = null;
         }
         return removed;

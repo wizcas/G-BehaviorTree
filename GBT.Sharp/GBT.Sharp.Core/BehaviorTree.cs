@@ -34,6 +34,10 @@ public partial class BehaviorTree {
     }
 
     public void SetRootNode(GBTNode? rootNode) {
+        if (rootNode == _rootNode) return;
+        if (_rootNode is not null) {
+            _rootNode.Runtime = null;
+        }
         _rootNode = rootNode;
         if (_rootNode != null) {
             _rootNode.Runtime = _runtime;

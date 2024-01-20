@@ -33,7 +33,7 @@ public abstract class DecoratorNode : GBTNode, ISingularParentNode {
             RemoveChild(Child);
         }
         Child = child;
-        Child.Runtime = Runtime;
+        //Child.Runtime = Runtime;
         if (child.Parent != this) {
             child.Parent = this;
         }
@@ -54,7 +54,6 @@ public abstract class DecoratorNode : GBTNode, ISingularParentNode {
             return false;
         }
 
-        Child.Runtime = null;
         Child = null;
         return true;
     }
