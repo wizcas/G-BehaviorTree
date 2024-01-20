@@ -50,4 +50,20 @@ public class ListCompositeTests {
         _root.MoveChild(_child2, -2);
         Assert.Equivalent(new[] { child3.ID, child4.ID, _child2.ID, _child1.ID }, _root.Children.Select(c => c.ID));
     }
+    [Fact]
+    public void ShouldPassDownTheOwnerTree() {
+        var tree = new BehaviorTree();
+        tree.SetRootNode(_root);
+        foreach (GBTNode node in (GBTNode[])[_root, _child1, _child2]) {
+            Assert.Equal(tree, node.Tree);
+        }
+    }
+    [Fact]
+    public void ShouldUpdateRootIfCurrentRootHasAParent() {
+        var tree = new BehaviorTree();
+        tree.SetRootNode(_root);
+        var newRoot = new SequenceNode("new root");
+        _root.Parent = newRoot;
+        Assert.Equal(newRoot, tree.RootNode);
+    }
 }
