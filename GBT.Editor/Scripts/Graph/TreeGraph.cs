@@ -5,6 +5,7 @@ using Godot.Collections;
 using Newtonsoft.Json;
 using System.Linq;
 
+
 public partial class TreeGraph : GraphEdit {
     private TreeGraphContextMenu? _contextMenu;
     private Dictionary<int, Callable> _contextActions = new();
@@ -76,8 +77,15 @@ public partial class TreeGraph : GraphEdit {
         }
     }
 
-    private void OnDeleteNodesRequest(Array nodes) {
-        nodes.Select(nodeName => FindGraphNode((string)nodeName)).Where(node => node != null).ToList().ForEach(node => {
+    private void OnDeleteNodesRequest(Array deletingNodeIDs) {
+        var needNewRootNode = deletingNodeIDs.Any((n) => (string)n == Tree.RootNode?.ID);
+        if (needNewRootNode && Tree.RootNode != null) {
+            var newRootID = Tree.Flatten().Select(n => n.ID).Except(deletingNodeIDs.Select(variant => variant.AsString())).FirstOrDefault();
+            if (!string.IsNullOrEmpty(newRootID)) {
+                Tree.SetRootNode(Tree.FindNode(newRootID));
+            }
+        }
+        deletingNodeIDs.Select(nodeName => FindGraphNode((string)nodeName)).Where(node => node != null).ToList().ForEach(node => {
             node!.Delete();
         });
     }
