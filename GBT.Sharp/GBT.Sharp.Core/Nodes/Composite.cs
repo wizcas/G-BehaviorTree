@@ -95,7 +95,6 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
     }
 
     public int MoveChild(GBTNode child, int toIndex) {
-        toIndex = Math.Max(0, Math.Min(toIndex, _children.Count - 1));
         var oldIndex = _children.IndexOf(child);
         if (oldIndex == toIndex) {
             return toIndex;
