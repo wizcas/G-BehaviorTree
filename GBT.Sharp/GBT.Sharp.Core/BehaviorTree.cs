@@ -14,9 +14,12 @@ public partial class BehaviorTree {
     public string? FilePath { get; set; } = null;
 
     private TreeRuntime _runtime;
-    private GBTNode? _rootNode;
 
-    public GBTNode? RootNode => _rootNode;
+    private GBTNode? _rootNode;
+    public GBTNode? RootNode {
+        get => _rootNode;
+        set => SetRootNode(value);
+    }
     public event Action<BehaviorTree>? RootNodeChanged;
 
     public TreeRuntime Runtime {
@@ -36,11 +39,11 @@ public partial class BehaviorTree {
     public void SetRootNode(GBTNode? rootNode) {
         if (rootNode == _rootNode) return;
         if (_rootNode is not null) {
-            _rootNode.Runtime = null;
+            _rootNode.Tree = null;
         }
         _rootNode = rootNode;
         if (_rootNode != null) {
-            _rootNode.Runtime = _runtime;
+            _rootNode.Tree = this;
         }
         RootNodeChanged?.Invoke(this);
     }

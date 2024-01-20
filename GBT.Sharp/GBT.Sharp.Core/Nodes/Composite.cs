@@ -43,10 +43,10 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         TryExit();
     }
     protected abstract void ProceedChildState(GBTNode child);
-    protected override void OnContextChanged() {
-        base.OnContextChanged();
+    protected override void OnTreeChanged() {
+        base.OnTreeChanged();
         if (State == NodeState.Running) {
-            BehaviorTree.Logger.Info($"running node is reset because context is updated", this);
+            BehaviorTree.Logger.Info($"running node is reset because the owning tree is updated", this);
             Reset();
         }
     }
@@ -91,6 +91,10 @@ public abstract class ListCompositeNode : Node<ListCompositeNode.Ctx>, IParentNo
         var oldIndex = _children.IndexOf(child);
         if (oldIndex == toIndex) {
             return toIndex;
+        }
+        if (toIndex < 0) {
+            // negative index means counting from the end
+            toIndex = _children.Count + (toIndex % _children.Count);
         }
         if (oldIndex > -1) {
             _children.RemoveAt(oldIndex);

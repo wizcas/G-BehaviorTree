@@ -39,8 +39,8 @@ public class BaseNodeTests {
         Assert.Equal(NodeState.Unvisited, _node.State);
     }
     [Fact]
-    public void ShouldNotRunIfNoContext() {
-        _node.Runtime = null;
+    public void ShouldNotRunIfUnattachedToTree() {
+        _tree.SetRootNode(null);
         _node.Tick();
         Assert.Equal(NodeState.Unvisited, _node.State);
     }

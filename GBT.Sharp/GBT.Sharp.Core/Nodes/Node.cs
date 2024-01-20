@@ -17,17 +17,21 @@ public abstract partial class GBTNode {
 
     public bool IsDisabled { get; set; }
 
-    private TreeRuntime? _runtime;
-    public TreeRuntime? Runtime {
-        get => _runtime ?? Parent?.Runtime;
-        set {
-            if (_runtime != value) {
-                _runtime = value;
-                OnContextChanged();
+    private BehaviorTree? _tree;
+    public BehaviorTree? Tree {
+        get => _tree ?? Parent?.Tree;
+        internal set {
+            if (_tree != value) {
+                BehaviorTree? oldTree = _tree;
+                _tree = value;
+                if (oldTree != Tree) {
+                    OnTreeChanged();
+                }
             }
         }
     }
 
+    public TreeRuntime? Runtime => Tree?.Runtime;
     public NodeContext Context { get; init; }
 
     /// <summary>
@@ -132,7 +136,7 @@ public abstract partial class GBTNode {
         return (T)this;
     }
 
-    protected virtual void OnContextChanged() { }
+    protected virtual void OnTreeChanged() { }
 
     private void SetParent(GBTNode? parent) {
         if (parent == Parent) {
