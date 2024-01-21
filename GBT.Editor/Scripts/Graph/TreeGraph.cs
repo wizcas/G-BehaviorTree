@@ -2,7 +2,6 @@ using GBT;
 using GBT.Nodes;
 using Godot;
 using Godot.Collections;
-using Newtonsoft.Json;
 using System.Linq;
 
 
@@ -15,7 +14,7 @@ public partial class TreeGraph : GraphEdit {
     private bool _shouldUpdateJsonOutput = false;
 
     [Export] public RenameNodeModal? RenameNodeModal { get; private set; }
-    [Export] public TextEdit? JsonOutput { get; private set; }
+    [Export] public JsonRenderer? JsonOutput { get; private set; }
 
     public event System.Action? RootChanged;
 
@@ -183,8 +182,8 @@ public partial class TreeGraph : GraphEdit {
             return;
         }
         var json = Tree.SaveAsJson();
-        json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(json), Formatting.Indented);
-        JsonOutput.Text = json;
+        //json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(json), Formatting.Indented);
+        JsonOutput.RawJson = json;
 
     }
 }

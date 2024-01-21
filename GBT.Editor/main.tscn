@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://e7nyx47xy7c3"]
+[gd_scene load_steps=11 format=3 uid="uid://e7nyx47xy7c3"]
 
 [ext_resource type="Script" path="res://Scripts/Commands/FileMenu.cs" id="1_41idx"]
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraph.cs" id="1_kvu8r"]
@@ -6,10 +6,16 @@
 [ext_resource type="Script" path="res://Scripts/Graph/TreeGraphContextMenu.cs" id="2_h52ie"]
 [ext_resource type="Script" path="res://Scripts/Graph/RenameNodeModal.cs" id="3_tqr46"]
 [ext_resource type="PackedScene" uid="uid://b7un6qlk4ikgk" path="res://Controls/ChildNodeEntry.tscn" id="3_yehqu"]
-[ext_resource type="CodeHighlighter" uid="uid://saaomcxjms6w" path="res://json-highlighter.tres" id="6_o8q46"]
+[ext_resource type="Script" path="res://Scripts/Controls/JsonRenderer.cs" id="8_784ie"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ic0kt"]
 bg_color = Color(0.0823529, 0.0823529, 0.0823529, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qdsn7"]
+bg_color = Color(0.121569, 0.145098, 0.14902, 1)
+
+[sub_resource type="SystemFont" id="SystemFont_r8rga"]
+font_names = PackedStringArray("Cascadia Code", "Fira Code", "Consolas", "Courier New", "Monospace")
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -68,9 +74,10 @@ size_flags_vertical = 3
 [node name="TreeGraph" type="GraphEdit" parent="VBoxContainer/HSplitContainer" node_paths=PackedStringArray("RenameNodeModal", "JsonOutput")]
 layout_mode = 2
 size_flags_horizontal = 3
+scroll_offset = Vector2(-464, 0)
 script = ExtResource("1_kvu8r")
 RenameNodeModal = NodePath("RenameNodeModal")
-JsonOutput = NodePath("../JsonOutput")
+JsonOutput = NodePath("../PanelContainer/MarginContainer/JsonRenderer")
 
 [node name="ContextMenu" type="PopupMenu" parent="VBoxContainer/HSplitContainer/TreeGraph"]
 script = ExtResource("2_h52ie")
@@ -122,9 +129,9 @@ text = "OK"
 
 [node name="TreeGraphNode" type="GraphNode" parent="VBoxContainer/HSplitContainer/TreeGraph"]
 layout_mode = 0
-offset_left = -255.0
+offset_left = 209.0
 offset_top = 13.0
-offset_right = 9.0
+offset_right = 473.0
 offset_bottom = 99.0
 mouse_filter = 1
 position_offset = Vector2(-255, 13)
@@ -143,14 +150,23 @@ script = ExtResource("2_ghf02")
 [node name="ChildNodeEntry" parent="VBoxContainer/HSplitContainer/TreeGraph/TreeGraphNode" instance=ExtResource("3_yehqu")]
 layout_mode = 2
 
-[node name="JsonOutput" type="TextEdit" parent="VBoxContainer/HSplitContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer/HSplitContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.5
-auto_translate = false
-localize_numeral_system = false
-editable = false
-wrap_mode = 1
-minimap_draw = true
-syntax_highlighter = ExtResource("6_o8q46")
-highlight_all_occurrences = true
+theme_override_styles/panel = SubResource("StyleBoxFlat_qdsn7")
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/HSplitContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 2
+
+[node name="JsonRenderer" type="RichTextLabel" parent="VBoxContainer/HSplitContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+theme_override_fonts/normal_font = SubResource("SystemFont_r8rga")
+bbcode_enabled = true
+script = ExtResource("8_784ie")
