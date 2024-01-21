@@ -7,14 +7,14 @@ using Newtonsoft.Json;
 
 [GlobalClass, Icon("res://Icons/json.svg")]
 public partial class JsonRenderer : RichTextLabel {
-    private string _rawJson = "";
+    private string? _rawJson;
     [Export]
-    public string RawJson {
+    public string? RawJson {
         get => _rawJson;
         set {
             if (_rawJson == value) return;
             _rawJson = value;
-            UpdateJson(RawJson);
+            UpdateText(RawJson);
         }
     }
 
@@ -32,9 +32,22 @@ public partial class JsonRenderer : RichTextLabel {
     public override void _Process(double delta) {
     }
 
-    private void UpdateJson(string raw) {
-        var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(raw), Formatting.Indented);
+    public void SetError(string? errorMessage) {
+        UpdateText(RawJson, errorMessage);
+    }
+
+    private void UpdateText(string? raw, string? err = null) {
+        if (err == null && string.IsNullOrWhiteSpace(raw)) {
+            err = "(no data)";
+        }
         Clear();
-        _formatter.Write(json, Languages.FindById(LanguageId.Json));
+        if (err == null) {
+            var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(raw), Formatting.Indented);
+            _formatter.Write(json, Languages.FindById(LanguageId.Json));
+        } else {
+            PushColor(Colors.LightGray);
+            AppendText(err);
+            Pop();
+        }
     }
 }

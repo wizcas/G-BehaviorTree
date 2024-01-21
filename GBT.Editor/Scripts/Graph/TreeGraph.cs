@@ -82,6 +82,8 @@ public partial class TreeGraph : GraphEdit {
             var newRootID = Tree.Flatten().Select(n => n.ID).Except(deletingNodeIDs.Select(variant => variant.AsString())).FirstOrDefault();
             if (!string.IsNullOrEmpty(newRootID)) {
                 Tree.SetRootNode(Tree.FindNode(newRootID));
+            } else {
+                Tree.SetRootNode(null);
             }
         }
         deletingNodeIDs.Select(nodeName => FindGraphNode((string)nodeName)).Where(node => node != null).ToList().ForEach(node => {
@@ -103,7 +105,7 @@ public partial class TreeGraph : GraphEdit {
             new CallbackNode("cb3")
         );
         var rootGraphNode = new TreeGraphNode() {
-            PositionOffset = (GetViewport().GetMousePosition() + ScrollOffset) / Zoom,
+            PositionOffset = GetNewNodePositionByMouse(),
             DataNode = testRoot,
         };
         AddChild(rootGraphNode);
@@ -124,7 +126,7 @@ public partial class TreeGraph : GraphEdit {
 
     public void CreateGraphNode(GBTNode dataNode, bool skipRefresh = false) {
         var node = new TreeGraphNode() {
-            PositionOffset = (GetViewport().GetMousePosition() + ScrollOffset) / Zoom,
+            PositionOffset = GetNewNodePositionByMouse(),
             DataNode = dataNode,
         };
         AddChild(node);
@@ -134,6 +136,9 @@ public partial class TreeGraph : GraphEdit {
         if (!skipRefresh) {
             RefreshConnections();
         }
+    }
+    private Vector2 GetNewNodePositionByMouse() {
+        return (GetViewport().GetMousePosition() + ScrollOffset - new Vector2(50, 50)) / Zoom;
     }
 
     public void Reload() {
@@ -178,12 +183,11 @@ public partial class TreeGraph : GraphEdit {
     private void ExecuteUpdateJsonOutput() {
         if (JsonOutput == null) return;
         if (Tree.RootNode == null) {
-            JsonOutput.Text = "(no root node)";
-            return;
+            JsonOutput.SetError("(no root node)");
+        } else {
+            var json = Tree.SaveAsJson();
+            //json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(json), Formatting.Indented);
+            JsonOutput.RawJson = json;
         }
-        var json = Tree.SaveAsJson();
-        //json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(json), Formatting.Indented);
-        JsonOutput.RawJson = json;
-
     }
 }
