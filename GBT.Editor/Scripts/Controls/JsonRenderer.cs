@@ -1,5 +1,6 @@
 using ColorCode;
 using ColorCode.Common;
+using ColorCode.Styling;
 using GBT.Editor.Scripts.ColorCodeFormatters;
 using Godot;
 using Newtonsoft.Json;
@@ -20,7 +21,7 @@ public partial class JsonRenderer : RichTextLabel {
     private RichTextFormatter _formatter;
 
     public JsonRenderer() : base() {
-        _formatter = new(this);
+        _formatter = new(this, StyleDictionary.DefaultDark);
     }
 
     // Called when the node enters the scene tree for the first time.
