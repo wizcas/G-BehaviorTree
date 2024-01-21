@@ -14,10 +14,13 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
         var buttonAddChild = new Button() {
             Name = "ButtonAddChild",
             Text = "Add Child",
-            Icon = ResourceLoader.Load<Texture2D>("res://Icons/UI/plus-small.svg"),
+            Icon = ResourceLoader.Load<Texture2D>("res://Icons/UI/plus.svg"),
         };
         buttonAddChild.Pressed += OnAddChildPressed;
-        GraphNode.AddChild(buttonAddChild);
+        var margin = new MarginContainer();
+        margin.AddThemeConstantOverride("margin_top", 16);
+        margin.AddChild(buttonAddChild);
+        GraphNode.AddChild(margin);
         foreach (GBTNode child in node.Children) {
             AddSlot(child);
             slotIndex++;
