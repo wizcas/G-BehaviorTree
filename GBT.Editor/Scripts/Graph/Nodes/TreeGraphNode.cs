@@ -38,7 +38,7 @@ public partial class TreeGraphNode : GraphNode {
         _rootBadge = new Label() { Text = "Root", Visible = false };
         _rootBadge.AddThemeColorOverride("font_color", Colors.Yellow);
         titlebar.AddChild(_rootBadge);
-        var renameButton = new Button() { Text = "Re" }; // TODO: icon
+        var renameButton = new Button() { Icon = ResourceLoader.Load<Texture2D>("res://Icons/UI/pencil.svg") }; // TODO: icon
         renameButton.Pressed += ShowRenameModal;
         titlebar.AddChild(renameButton);
         if (Graph.RenameNodeModal != null) {

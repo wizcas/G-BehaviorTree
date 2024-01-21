@@ -10,6 +10,7 @@ public partial class ChildNodeSlot : Control, ISlot {
     [Export] public Label? LabelChildName { get; set; }
     [Export] public Button? ButtonMoveUp { get; set; }
     [Export] public Button? ButtonMoveDown { get; set; }
+    [Export] public Button? ButtonDelete { get; set; }
 
     public TreeGraphNode GraphNode => GetParent<TreeGraphNode>();
     #endregion

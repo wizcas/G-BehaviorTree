@@ -14,6 +14,7 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
         var buttonAddChild = new Button() {
             Name = "ButtonAddChild",
             Text = "Add Child",
+            Icon = ResourceLoader.Load<Texture2D>("res://Icons/UI/plus-small.svg"),
         };
         buttonAddChild.Pressed += OnAddChildPressed;
         GraphNode.AddChild(buttonAddChild);
@@ -39,6 +40,9 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
         if (slot.ButtonMoveDown != null) {
             slot.ButtonMoveDown.Pressed += () => OnMoveButtonPressed(DataNode, slot, 1);
         }
+        if (slot.ButtonDelete != null) {
+            slot.ButtonDelete.Pressed += () => OnDeleteButtonPressed(DataNode, slot);
+        }
         GraphNode.SetSlot(slot.SlotIndex,
             false, SlotMetadata.Node.Type, SlotMetadata.Node.Color,
             true, SlotMetadata.Node.Type, SlotMetadata.Node.Color);
@@ -47,7 +51,7 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
 
     private void OnAddChildPressed() {
         ChildNodeSlot slot = AddSlot(null);
-        Callable.From(slot.UpdateGUI);
+        slot.UpdateGUI();
     }
 
     private void OnMoveButtonPressed(ListCompositeNode? parent, ChildNodeSlot slot, int delta) {
@@ -63,6 +67,14 @@ public class ListCompositeNodeDrawer : GBTNodeDrawer<ListCompositeNode> {
         if (parent != null && slot.DataChild != null) {
             parent.MoveChild(slot.DataChild, slot.GetDesignedChildIndex());
         }
+        Callable.From(Refresh).CallDeferred();
+    }
+    private void OnDeleteButtonPressed(ListCompositeNode? parent, ChildNodeSlot slot) {
+        if (parent != null && slot.DataChild != null) {
+            parent.RemoveChild(slot.DataChild);
+        }
+        GraphNode.RemoveChild(slot);
+        slot.QueueFree();
         Callable.From(Refresh).CallDeferred();
     }
 

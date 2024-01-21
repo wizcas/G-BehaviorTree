@@ -74,7 +74,6 @@ size_flags_vertical = 3
 [node name="TreeGraph" type="GraphEdit" parent="VBoxContainer/HSplitContainer" node_paths=PackedStringArray("RenameNodeModal", "JsonOutput")]
 layout_mode = 2
 size_flags_horizontal = 3
-scroll_offset = Vector2(-464, 0)
 script = ExtResource("1_kvu8r")
 RenameNodeModal = NodePath("RenameNodeModal")
 JsonOutput = NodePath("../PanelContainer/MarginContainer/JsonRenderer")
@@ -129,12 +128,12 @@ text = "OK"
 
 [node name="TreeGraphNode" type="GraphNode" parent="VBoxContainer/HSplitContainer/TreeGraph"]
 layout_mode = 0
-offset_left = 209.0
-offset_top = 13.0
-offset_right = 473.0
-offset_bottom = 99.0
+offset_left = 241.0
+offset_top = 212.0
+offset_right = 521.0
+offset_bottom = 298.0
 mouse_filter = 1
-position_offset = Vector2(-255, 13)
+position_offset = Vector2(241, 212)
 title = "aaaaaaaaaaaaa"
 slot/0/left_enabled = false
 slot/0/left_type = 0
